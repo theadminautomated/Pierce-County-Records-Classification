@@ -729,6 +729,31 @@ class MainScreen(ctk.CTkFrame):
         )
         self.lines_label.pack(side="left", anchor="center")
         self.lines_slider.configure(command=self._update_lines_label)
+
+        # Slider for last-modified threshold in years
+        ctk.CTkLabel(
+            button_frame,
+            text="Modified \u2265 (years):",
+            font=(FONT_FAMILY, 11)
+        ).pack(side="left", padx=(20, 5), anchor="center")
+
+        self.threshold_slider = ctk.CTkSlider(
+            button_frame,
+            from_=1,
+            to=10,
+            number_of_steps=9,
+            width=120
+        )
+        self.threshold_slider.set(6)
+        self.threshold_slider.pack(side="left", padx=(0, 10), anchor="center")
+
+        self.threshold_label = ctk.CTkLabel(
+            button_frame,
+            text=f"{int(self.threshold_slider.get())}",
+            font=(FONT_FAMILY, 11)
+        )
+        self.threshold_label.pack(side="left", anchor="center")
+        self.threshold_slider.configure(command=self._update_threshold_label)
         
         # Add dropdown for classification mode
         self.mode_var = tk.StringVar(value="Classification")
@@ -748,6 +773,10 @@ class MainScreen(ctk.CTkFrame):
             value: New slider value
         """
         self.lines_label.configure(text=f"{int(float(value))}")
+
+    def _update_threshold_label(self, value):
+        """Update the last-modified threshold label when slider changes."""
+        self.threshold_label.configure(text=f"{int(float(value))}")
         
     def _setup_results_table(self, parent):
         """Setup the results table with headers and data display.
@@ -983,7 +1012,8 @@ object adhering to the defined schema.
                     instructions,    # instructions
                     0.1,            # temperature (default from CLI version)
                     int(self.lines_slider.get()),  # max_lines from slider
-                    self._run_mode  # run mode
+                    self._run_mode,  # run mode
+                    int(self.threshold_slider.get()),  # threshold_years
                 )
                 
                 print(f"DEBUG: classification_engine.classify_file returned: {classification_result}")

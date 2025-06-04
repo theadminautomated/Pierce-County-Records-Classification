@@ -151,11 +151,12 @@ class ClassificationEngine:
         """
         self.llm_engine = LLMEngine(timeout_seconds)
     def _hybrid_confidence(
-        self, 
-        llm_score: int, 
-        file_path: Path, 
-        content: str, 
-        determination: str
+        self,
+        llm_score: int,
+        file_path: Path,
+        content: str,
+        determination: str,
+        threshold_years: int,
     ) -> int:
         """Calculate hybrid confidence score combining LLM and rule-based logic.
         
@@ -175,7 +176,7 @@ class ClassificationEngine:
         try:
             if determination == "DESTROY":
                 mtime = datetime.datetime.fromtimestamp(file_path.stat().st_mtime)
-                threshold = datetime.datetime.now() - datetime.timedelta(days=6 * 365)
+                threshold = datetime.datetime.now() - datetime.timedelta(days=threshold_years * 365)
                 if mtime < threshold:
                     return 100
                 else:
@@ -204,7 +205,8 @@ class ClassificationEngine:
         instructions: str = '',
         temperature: float = 0.1,
         max_lines: int = 100,
-        run_mode: str = 'Classification'
+        run_mode: str = 'Classification',
+        threshold_years: int = 6,
     ) -> ClassificationResult:
         """
         Classify a single file with comprehensive error handling.
@@ -216,6 +218,7 @@ class ClassificationEngine:
             temperature: LLM temperature
             max_lines: Maximum lines to read from file
             run_mode: Classification mode ('Classification' or 'Last Modified')
+            threshold_years: Age threshold in years for automatic DESTROY logic
             
         Returns:
             ClassificationResult with all metadata and classification
@@ -265,7 +268,7 @@ class ClassificationEngine:
             # Read file content
             content = self._read_file_content(file_path, max_lines)
             
-            threshold = datetime.datetime.now() - datetime.timedelta(days=6 * 365)
+            threshold = datetime.datetime.now() - datetime.timedelta(days=threshold_years * 365)
 
             if run_mode == "Last Modified":
                 processing_time = (datetime.datetime.now() - start_time).total_seconds() * 1000
@@ -278,8 +281,8 @@ class ClassificationEngine:
                         size_kb=size_kb,
                         model_determination="DESTROY",
                         confidence_score=100,
-                        contextual_insights="Last Modified date > 6 years",
-                        status="Marked for Destruction",
+                        contextual_insights=f"Last Modified date > {threshold_years} years",
+                        status="success",
                         processing_time_ms=int(processing_time),
                     )
                 return ClassificationResult(
@@ -290,7 +293,7 @@ class ClassificationEngine:
                     size_kb=size_kb,
                     model_determination="SKIP",
                     confidence_score=100,
-                    contextual_insights="File newer than 6 years",
+                    contextual_insights=f"File newer than {threshold_years} years",
                     status="skipped",
                     processing_time_ms=int(processing_time),
                 )
@@ -306,7 +309,7 @@ class ClassificationEngine:
                     size_kb=size_kb,
                     model_determination="DESTROY",
                     confidence_score=100,
-                    contextual_insights="Older than 6 years - automatic destroy",
+                    contextual_insights=f"Older than {threshold_years} years - automatic destroy",
                     status="success",
                     processing_time_ms=int(processing_time),
                 )
@@ -324,7 +327,8 @@ class ClassificationEngine:
                 llm_result.get('confidenceScore', 0),
                 file_path,
                 content,
-                llm_result.get('modelDetermination', 'ERROR')
+                llm_result.get('modelDetermination', 'ERROR'),
+                threshold_years,
             )
             
             processing_time = (datetime.datetime.now() - start_time).total_seconds() * 1000
@@ -383,7 +387,8 @@ def process_file(
     instructions: str,
     temperature: float,
     lines: int,
-    run_mode: str = 'Classification'
+    run_mode: str = 'Classification',
+    threshold_years: int = 6,
 ) -> Dict[str, Any]:
     """
     Legacy compatibility function that matches the original interface.
@@ -395,6 +400,7 @@ def process_file(
         temperature: LLM temperature
         lines: Maximum lines to read from file
         run_mode: Classification mode ('Classification' or 'Last Modified')
+        threshold_years: Age threshold in years for DESTROY logic
     
     Returns:
         Dictionary with classification results in the original format
@@ -405,7 +411,8 @@ def process_file(
         instructions=instructions,
         temperature=temperature,
         max_lines=lines,
-        run_mode=run_mode
+        run_mode=run_mode,
+        threshold_years=threshold_years,
     )
     
     # Convert to original format

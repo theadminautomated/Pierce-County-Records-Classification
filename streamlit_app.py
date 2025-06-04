@@ -20,11 +20,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def classify(file_path: Path, engine: ClassificationEngine, mode: str) -> None:
+def classify(file_path: Path, engine: ClassificationEngine, mode: str, years: int) -> None:
     """Classify a file and display results."""
     with st.spinner("Classifying..."):
         try:
-            result = engine.classify_file(str(file_path), run_mode=mode)
+            result = engine.classify_file(str(file_path), run_mode=mode, threshold_years=years)
         except Exception as exc:  # pragma: no cover - UI feedback only
             logger.exception("Classification failed")
             st.error(f"Classification failed: {exc}")
@@ -70,6 +70,8 @@ def main() -> None:
         horizontal=True,
     )
 
+    years = st.slider("Last Modified Threshold (years)", 1, 10, 6)
+
     uploaded_file = st.file_uploader("Upload a file for classification")
     if uploaded_file:
         st.info(f"Saving {uploaded_file.name}...")
@@ -78,7 +80,7 @@ def main() -> None:
         if file_path:
             st.success("File saved")
             st.write(f"Name: {file_path.name} | Size: {file_path.stat().st_size} bytes")
-            classify(file_path, engine, mode)
+            classify(file_path, engine, mode, years)
 
 
 if __name__ == "__main__":
