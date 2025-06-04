@@ -15,7 +15,8 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 2. Local LLM classification with rule‑based fallback
 3. Works with PDF, Office, images, and text files
 4. Export results to CSV
-5. Responsive layout with dark mode and keyboard navigation
+5. Adjustable lines-per-file slider to control context size
+6. Responsive layout with dark mode and keyboard navigation
 
 ## System Requirements
 - Windows 10/11 or macOS/Linux with Python **3.8+**
