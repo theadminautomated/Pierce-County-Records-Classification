@@ -25,3 +25,14 @@ def test_last_modified_mode_auto_destroy(tmp_path):
     os.utime(file_path, (old_time, old_time))
     result = engine.classify_file(file_path, run_mode="Last Modified")
     assert result.model_determination == "DESTROY"
+
+
+def test_last_modified_custom_threshold(tmp_path):
+    engine = ClassificationEngine(timeout_seconds=1)
+    file_path = tmp_path / "three_years.txt"
+    file_path.write_text("content")
+    old_time = (datetime.datetime.now() - datetime.timedelta(days=3 * 365 + 1)).timestamp()
+    os.utime(file_path, (old_time, old_time))
+
+    result = engine.classify_file(file_path, run_mode="Last Modified", threshold_years=2)
+    assert result.model_determination == "DESTROY"

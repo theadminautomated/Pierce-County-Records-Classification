@@ -17,7 +17,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 4. Export results to CSV
 5. Adjustable lines-per-file slider to control context size
 6. Responsive layout with dark mode and keyboard navigation
-7. **Last Modified mode** to quickly find records older than six years
+7. **Last Modified mode** with a slider to choose how many years back to search
 
 ## System Requirements
 - Windows 10/11 or macOS/Linux with Python **3.8+**
@@ -44,7 +44,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 2. Click **Browse** and choose a document
 3. Watch the spinner and progress messages
 4. Read the decision and confidence score
-5. Switch to **Last Modified** mode to list files older than six years
+5. Switch to **Last Modified** mode and adjust the slider to list files older than your chosen number of years
 5. Save to CSV if desired
 
 ## Minimal Path to Awesome (IT Admins)
