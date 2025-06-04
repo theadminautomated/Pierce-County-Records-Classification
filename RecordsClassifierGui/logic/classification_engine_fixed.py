@@ -387,9 +387,6 @@ class ClassificationEngine:
                     processing_time_ms=int(processing_time),
                 )
 
-            # Read file content
-            content = self._read_file_content(file_path, max_lines)
-
             if run_mode == "Last Modified":
                 processing_time = (
                     datetime.datetime.now() - start_time
@@ -403,7 +400,7 @@ class ClassificationEngine:
                         size_kb=size_kb,
                         model_determination="DESTROY",
                         confidence_score=100,
-                        contextual_insights=f"Last Modified date > {threshold_years} years",
+                        contextual_insights=f"Older than {threshold_years} years - automatic destroy",
                         status="success",
                         processing_time_ms=int(processing_time),
                     )
@@ -419,6 +416,9 @@ class ClassificationEngine:
                     status="skipped",
                     processing_time_ms=int(processing_time),
                 )
+
+            # Read file content
+            content = self._read_file_content(file_path, max_lines)
 
 
             # Use LLM for classification
@@ -571,7 +571,7 @@ def classify_directory(
     processed = 0
     batch: list[Path] = []
     for file_info in scanner.scan_directory(directory):
-        if file_info.category != "analyze":
+        if file_info.category == "skip":
             continue
         batch.append(file_info.path)
         if len(batch) >= batch_size:
