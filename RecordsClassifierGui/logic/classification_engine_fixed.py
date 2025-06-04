@@ -131,8 +131,8 @@ class ClassificationEngine:
     def _read_file_content(self, file_path: Path, max_lines: int = 100) -> str:
         """Safely read file content with proper error handling."""
         try:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = ''.join([next(f, '') for _ in range(max_lines)])
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = "".join([next(f, "") for _ in range(max_lines)])
             return content
         except Exception as e:
             logger.warning(f"Could not read file {file_path}: {e}")
@@ -269,8 +269,13 @@ class ClassificationEngine:
             )
             
         except Exception as e:
-            processing_time = (datetime.datetime.now() - start_time).total_seconds() * 1000
-            logger.error(f"Failed to classify {file_path}: {e}")
+            processing_time = (
+                datetime.datetime.now() - start_time
+            ).total_seconds() * 1000
+            logger.error("Failed to classify %s: %s", file_path, e)
+            msg = str(e)
+            if "await" in msg and "expression" in msg:
+                msg += " - asynchronous call failed"
             
             # Return error result with as much metadata as possible
             try:
@@ -289,9 +294,9 @@ class ClassificationEngine:
                 size_kb=size_kb,
                 model_determination="ERROR",
                 confidence_score=0,
-                contextual_insights=f"Processing error: {str(e)[:200]}",
+                contextual_insights=f"Processing error: {msg[:200]}",
                 processing_time_ms=int(processing_time),
-                error_message=str(e)
+                error_message=msg
             )
 
 # Create a global instance for backward compatibility
