@@ -7,6 +7,7 @@ Efficiently discovers and categorizes files for processing with proper architect
 
 import os
 import sys
+ codex/refactor-core-logic-functions
 import subprocess
 from pathlib import Path
 from typing import Dict, Set, List, Iterator, Tuple, Union
@@ -50,6 +51,14 @@ try:
 except Exception:  # pragma: no cover - optional dependency
     Image = None
     pytesseract = None
+
+from pathlib import Path
+from typing import List, Dict, Set, Optional, Iterator, Tuple, Union
+from dataclasses import dataclass
+import datetime
+import logging
+import subprocess
+ main
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -274,6 +283,7 @@ def scan_files(folder: Union[str, Path], include_ext: Set[str] = INCLUDE_EXT) ->
         if suffix in include_ext and not f.name.startswith('.') and not f.name.startswith('~$'):
             yield f
 
+ codex/refactor-core-logic-functions
 def extract_file_content(f: Path, max_chars: int = 4000) -> str:
     """Extract and clean text from the given file."""
     suffix = f.suffix.lower()
@@ -448,6 +458,137 @@ def _extract_image(file_path: Path, max_chars: int) -> str:
     except Exception as exc:
         return f"[Error reading image: {exc}]"
 
+def extract_file_content(f: Path, max_chars: int = 4000) -> str:
+    """
+    Extract text content from a file, using OCR/parsers for binary formats.
+    Returns up to max_chars of cleaned text.
+    """
+    suffix = f.suffix.lower()
+    try:
+        if suffix == '.txt':
+            # Try UTF-8, then latin-1
+            for encoding in ('utf-8', 'latin-1'):
+                try:
+                    with f.open('r', encoding=encoding, errors='ignore') as fp:
+                        content = fp.read(max_chars)
+                        return _clean_text(content)
+                except UnicodeDecodeError:
+                    continue
+                except Exception as e:
+                    return f"[Error reading file: {str(e)}]"
+            return f"[Unreadable file: {suffix}]"
+
+        elif suffix == '.pdf':
+            # Try text extraction with pdfplumber, fallback to PyPDF2, then OCR
+            text = ""
+            if pdfplumber:
+                try:
+                    with pdfplumber.open(str(f)) as pdf:
+                        for page in pdf.pages:
+                            text += page.extract_text() or ""
+                            if len(text) >= max_chars:
+                                break
+                except Exception:
+                    text = ""
+            if not text and PyPDF2:
+                try:
+                    with open(f, 'rb') as fp:
+                        reader = PyPDF2.PdfReader(fp)
+                        for page in reader.pages:
+                            text += page.extract_text() or ""
+                            if len(text) >= max_chars:
+                                break
+                except Exception:
+                    text = ""
+            if not text and pytesseract and Image:
+                # OCR fallback: render each page as image and OCR
+                try:
+                    import pdf2image
+                    images = pdf2image.convert_from_path(str(f))
+                    for img in images:
+                        text += pytesseract.image_to_string(img)
+                        if len(text) >= max_chars:
+                            break
+                except Exception:
+                    text = ""
+            if text:
+                return _clean_text(text)[:max_chars]
+            else:
+                return "[Could not extract text from PDF]"
+
+        elif suffix in ('.docx',):
+            if docx:
+                try:
+                    doc = docx.Document(str(f))
+                    text = "\n".join(p.text for p in doc.paragraphs)
+                    return _clean_text(text)[:max_chars]
+                except Exception as e:
+                    return f"[Error reading DOCX: {str(e)}]"
+            else:
+                return "[python-docx not installed]"
+
+        elif suffix in ('.doc',):
+            # Use antiword via subprocess for legacy .doc files
+            try:
+                result = subprocess.run([
+                    'antiword',
+                    str(f)
+                ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False)
+                text = result.stdout.decode('utf-8', errors='ignore')
+                if text:
+                    return _clean_text(text)[:max_chars]
+                return "[No text extracted from DOC]"
+            except FileNotFoundError:
+                return "[antiword not installed]"
+            except Exception as e:
+                return f"[Error reading DOC: {str(e)}]"
+
+        elif suffix in ('.pptx',):
+            if pptx:
+                try:
+                    prs = pptx.Presentation(str(f))
+                    text = []
+                    for slide in prs.slides:
+                        for shape in slide.shapes:
+                            if hasattr(shape, "text"):
+                                text.append(shape.text)
+                    return _clean_text("\n".join(text))[:max_chars]
+                except Exception as e:
+                    return f"[Error reading PPTX: {str(e)}]"
+            else:
+                return "[python-pptx not installed]"
+
+        elif suffix in ('.xlsx',):
+            if openpyxl:
+                try:
+                    wb = openpyxl.load_workbook(str(f), read_only=True, data_only=True)
+                    text = []
+                    for ws in wb.worksheets:
+                        for row in ws.iter_rows(values_only=True):
+                            for cell in row:
+                                if cell is not None:
+                                    text.append(str(cell))
+                                    if sum(len(t) for t in text) >= max_chars:
+                                        break
+                            if sum(len(t) for t in text) >= max_chars:
+                                break
+                        if sum(len(t) for t in text) >= max_chars:
+                            break
+                    return _clean_text(" ".join(text))[:max_chars]
+                except Exception as e:
+                    return f"[Error reading XLSX: {str(e)}]"
+            else:
+                return "[openpyxl not installed]"
+
+        else:
+            return f"[Unsupported file type: {suffix}]"
+    except Exception as e:
+        return f"[Error extracting content: {str(e)}]"
+ 
+
 def _clean_text(text: str) -> str:
     """
     Clean extracted text: collapse whitespace, strip control chars, etc.
@@ -457,3 +598,7 @@ def _clean_text(text: str) -> str:
     text = re.sub(r'[ \t]+', ' ', text)
     text = text.strip()
     return text
+ codex/refactor-core-logic-functions
+
+
+ main

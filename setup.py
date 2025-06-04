@@ -59,6 +59,7 @@ def pip_install(package):
 
 def install_dependencies():
     print_header("Installing Dependencies")
+ codex/refactor-core-logic-functions
     dependencies = [
         "customtkinter>=5.2.0",
         "Pillow>=9.0.0",
@@ -76,6 +77,23 @@ def install_dependencies():
         "pandas>=2.2.2",
         "pytest>=8.2.1"
     ]
+
+    dependencies = [
+        "customtkinter>=5.2.0",
+        "Pillow>=9.0.0",
+        "ollama>=0.1.7",
+        "psutil>=5.9.0",
+        "openpyxl>=3.1.2",
+        "python-docx>=0.8.11",
+        "python-pptx>=0.6.21",
+        "PyPDF2>=3.0.0",
+        "pdfplumber>=0.8.1",
+        "pytesseract>=0.3.10",
+        "pdf2image>=1.16.0",
+        "typing-extensions>=4.0.0",
+        "xlrd>=2.0.1"
+    ]
+ main
     all_ok = True
     for dep in dependencies:
         if not pip_install(dep):

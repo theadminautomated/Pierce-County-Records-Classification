@@ -17,7 +17,11 @@ setup(
         "pytesseract>=0.3.10",
         "pdf2image>=1.16.0",
         "jsonschema>=4.24.0"
+ codex/refactor-core-logic-functions
     ],
+
+    ],
+ main
     include_package_data=True,
     description="Pierce County Records Classifier GUI and backend modules.",
     author="Pierce County IT",
