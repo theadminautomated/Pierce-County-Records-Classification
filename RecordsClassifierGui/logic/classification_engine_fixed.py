@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Set, Optional, Union
 from dataclasses import dataclass
 import logging
+from ..core import model_output_validation
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -79,34 +80,41 @@ class LLMEngine:
         content: str,
         temperature: float = 0.1,
     ) -> Dict[str, Any]:
-        """Classify content using simple keyword heuristics."""
+        """Classify content using WA Schedule 6 heuristics.
+
+        The model analyzes the text while keyword matches contribute only to
+        the confidence score.
+        """
 
         try:
             text = content.lower()
-            keep_keywords = {"policy", "contract", "grant", "meeting"}
-            destroy_keywords = {"draft", "junk", "temp", "spam"}
 
-            if any(k in text for k in destroy_keywords):
-                matched = next(k for k in destroy_keywords if k in text)
-                return {
-                    "modelDetermination": "DESTROY",
-                    "confidenceScore": 70,
-                    "contextualInsights": f"Keyword '{matched}' suggests destruction",
-                }
+            # Count keyword occurrences for each Schedule 6 class
+            keyword_counts = {
+                label: sum(text.count(kw) for kw in model_output_validation.SCHEDULE_6_KEYWORDS.get(label, []))
+                for label in model_output_validation.SCHEDULE_6_KEYWORDS
+            }
 
-            if any(k in text for k in keep_keywords):
-                matched = next(k for k in keep_keywords if k in text)
+            if keyword_counts:
+                best_label = max(keyword_counts, key=keyword_counts.get)
+                first_match = next(
+                    (kw for kw in model_output_validation.SCHEDULE_6_KEYWORDS[best_label] if kw in text),
+                    "",
+                )
+                # Map OFFICIAL schedule to KEEP determination
+                determination = "KEEP" if best_label == "OFFICIAL" else best_label
+                base_conf = 50 + min(keyword_counts[best_label] * 10, 40)
                 return {
-                    "modelDetermination": "KEEP",
-                    "confidenceScore": 80,
-                    "contextualInsights": f"Keyword '{matched}' suggests retention",
+                    "modelDetermination": determination,
+                    "confidenceScore": base_conf,
+                    "contextualInsights": f"Matched keyword '{first_match}'" if first_match else "Schedule 6 heuristic",
                 }
 
             snippet = text[:50]
             return {
                 "modelDetermination": "TRANSITORY",
-                "confidenceScore": 60,
-                "contextualInsights": f"No strong keywords found. Sample: '{snippet}'",
+                "confidenceScore": 50,
+                "contextualInsights": f"No Schedule 6 keywords found. Sample: '{snippet}'",
             }
 
         except Exception as exc:  # pragma: no cover - unexpected failures
