@@ -2,7 +2,7 @@
 """Records Classifier GUI Launcher – Production.
 
 Loads and runs the main GUI app. LLM/model/service logic is invoked as needed by the app.
-No dummy/test/stub code—this is the real deal.
+No dummy/test/stub code—this is the real deal. Valid.
 """
 
 import logging
