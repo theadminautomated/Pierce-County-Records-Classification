@@ -115,13 +115,13 @@ def main() -> None:
     if st.session_state.get("last_file") and not st.session_state.get("running"):
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("RERUN", help="Run classification again on the last uploaded file"):
+            if st.button("↻", help="Run classification again on the last uploaded file"):
                 classify(st.session_state["last_file"], engine, mode, years)
         with col2:
             result = st.session_state.get("last_result")
             if result:
                 st.download_button(
-                    "EXPORT",
+                    "⬇",
                     data=str(result),
                     file_name="classification.json",
                     help="Download the latest classification result",

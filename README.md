@@ -18,7 +18,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 5. Adjustable lines-per-file slider to control context size
 6. Responsive layout with dark mode and keyboard navigation
 7. **Last Modified mode** with a slider shown only when this mode is selected
-8. Inline **RERUN** and **EXPORT** buttons appear after a job completes
+8. Inline rerun (↻) and export (⬇) buttons appear after a job completes
 9. Extensive Schedule 6 keyword list for accurate classification
 10. Clear results table showing **File Path** and a new **NA** category for skipped files
 
@@ -48,7 +48,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 3. Watch the spinner and progress messages
 4. Read the decision and confidence score
 5. Switch to **Last Modified** mode and adjust the slider to list files older than your chosen number of years
-6. When finished, use **RERUN** to analyze again or **EXPORT** to save results
+6. When finished, use the ↻ button to analyze again or the ⬇ button to save results
 
 ## Minimal Path to Awesome (IT Admins)
 1. Review `config.yaml` or set environment variables for model location

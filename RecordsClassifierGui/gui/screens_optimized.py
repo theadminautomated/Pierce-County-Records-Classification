@@ -735,10 +735,10 @@ class MainScreen(ctk.CTkFrame):
         # Inline RERUN and EXPORT buttons (initially hidden)
         self.rerun_btn = ctk.CTkButton(
             header_row,
-            text="RERUN",
-            font=(FONT_FAMILY, 11, "bold"),
+            text="↻",
+            font=(FONT_FAMILY, 16, "bold"),
             height=28,
-            width=80,
+            width=40,
             fg_color=theme.get('button_warning', '#FFC107'),
             text_color=theme.get('button_fg', 'white'),
             hover_color=theme.get('button_warning_hover', '#e0a800'),
@@ -749,10 +749,10 @@ class MainScreen(ctk.CTkFrame):
 
         self.export_btn = ctk.CTkButton(
             header_row,
-            text="EXPORT",
-            font=(FONT_FAMILY, 11, "bold"),
+            text="⬇",
+            font=(FONT_FAMILY, 16, "bold"),
             height=28,
-            width=80,
+            width=40,
             fg_color=theme.get('button_success', '#28A745'),
             text_color=theme.get('button_fg', 'white'),
             hover_color=theme.get('button_success_hover', '#218838'),
