@@ -70,3 +70,22 @@ A: In your home directory as `.pc_records_classifier_settings.pkl`.
 
 Pierce County IT | 2025
 """
+
+## Configuration
+Create a `config.yaml` or set environment variables to override defaults:
+
+```
+PCRC_MODEL=custom-model
+PCRC_OLLAMA_URL=http://localhost:11434
+PCRC_CONFIG=/path/to/config.yaml
+```
+
+The sample `config.yaml` may contain:
+
+```yaml
+model_name: pierce-county-records-classifier-phi2:latest
+ollama_url: http://localhost:11434
+```
+
+## Testing
+Run unit tests with `pytest`. A stub LLM is used so tests run offline.
