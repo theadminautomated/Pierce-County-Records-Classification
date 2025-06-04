@@ -1,37 +1,28 @@
-#REMOVED NEED TO REPLACE
-# https://pypi.org/project/
 # Core GUI and LLM dependencies
 customtkinter>=5.2.0
 Pillow>=9.0.0
-ollama>=0.1.7
-
-# Document parsing dependencies
-python-docx>=0.8.11
-python-pptx>=0.6.21
-PyPDF2>=3.0.0
-pdfplumber>=0.8.1
-pytesseract>=0.3.10
-pdf2image>=1.16.0
-textract>=1.6.5
-openpyxl>=3.1.2
-setuptools>=80.9.0
-jsonschema>=4.24.0
-# Optional: For CSV export, pandas is recommended for robust handling
-pandas>=2.2.2
-# For testing (unit/integration)
-pytest>=8.2.1
-# Optional: For LLM/model integration (Ollama, etc.)
 ollama>=0.1.8
 
-# Optional: For .doc (legacy Word) parsing fallback
-antiword; platform_system=="Windows"
+# Document parsing dependencies (NO textract!)
+python-docx>=0.8.11      # .docx
+python-pptx>=0.6.21      # .pptx
+PyPDF2>=3.0.0            # PDFs (basic)
+pdfplumber>=0.8.1        # PDFs (with OCR/text extraction)
+pytesseract>=0.3.10      # OCR for images/PDFs
+pdf2image>=1.16.0        # Convert PDF pages to images for OCR
+openpyxl>=3.1.2          # .xlsx
+setuptools>=80.9.0
+jsonschema>=4.24.0
+pandas>=2.2.2            # CSV/XLSX export, robust tabular handling
+pytest>=8.2.1            # Unit/integration tests
 
-# Optional: For .xls (legacy Excel) parsing fallback
-xlrd>=2.0.1
+# Optional/legacy format fallback
+antiword; platform_system=="Windows"   # For .doc (legacy Word)
+xlrd>=2.0.1                           # For .xls (legacy Excel)
 
-# For type hints and static analysis (optional, but recommended for enterprise)
+# Type hints/static analysis
 typing-extensions>=4.0.0
 
-# System dependencies (must be installed separately):
+# System dependencies (not pip installable):
 # - Tesseract OCR: https://github.com/tesseract-ocr/tesseract
 # - Poppler: https://github.com/oschwartz10612/poppler-windows (Windows) or `brew install poppler` (Mac)
