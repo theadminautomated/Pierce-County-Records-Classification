@@ -17,7 +17,7 @@ import threading
 import tkinter as tk
 import urllib.error
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import Any, Dict, Optional
@@ -896,10 +896,17 @@ class MainScreen(ctk.CTkFrame):
                 print(f"DEBUG: File result keys: {list(file_result.keys())}")
                 print(f"DEBUG: Current tree children count: {len(self.tree.get_children())}")
                   # Insert file result into the table immediately
+                raw_date = file_result.get('LastModified', '')
+                try:
+                    modified_dt = datetime.fromisoformat(str(raw_date))
+                    formatted_date = modified_dt.strftime("%m/%d/%Y")
+                except Exception:
+                    formatted_date = raw_date
+
                 values = (
                     file_result.get('FileName', ''),
                     f"{file_result.get('SizeKB', 0)} KB",
-                    file_result.get('LastModified', ''),
+                    formatted_date,
                     file_result.get('ModelDetermination', ''),
                     file_result.get('ConfidenceScore', ''),
                     file_result.get('Status', 'Unknown'),
@@ -1028,7 +1035,8 @@ object adhering to the defined schema.
                     'ModelDetermination': classification_result.model_determination,
                     'ConfidenceScore': classification_result.confidence_score,
                     'ContextualInsights': classification_result.contextual_insights,
-                    'ProcessingTimeMs': classification_result.processing_time_ms
+                    'ProcessingTimeMs': classification_result.processing_time_ms,
+                    'Status': classification_result.status,
                 }
                 
                 print(f"DEBUG: Final file_result: {file_result}")
@@ -1047,7 +1055,8 @@ object adhering to the defined schema.
                 'ModelDetermination': 'Error',
                 'ConfidenceScore': 0,
                 'ContextualInsights': f'Error: {str(e)}',
-                'ProcessingTimeMs': 0
+                'ProcessingTimeMs': 0,
+                'Status': 'error'
             }
 
     def _stop_classification(self):
@@ -1184,12 +1193,16 @@ object adhering to the defined schema.
         
     def _browse_folder(self):
         """Browse for input folder and update entry."""
-        folder = filedialog.askdirectory(title="Select folder containing files to classify")
+        folder = filedialog.askdirectory(
+            title="Select folder containing files to classify"
+        )
         if folder:
+            # Update UI after dialog closes to avoid perceived freezing
             self.input_folder = folder
-            self.folder_entry.delete(0, 'end')
+            self.folder_entry.delete(0, "end")
             self.folder_entry.insert(0, folder)
             self._validate_inputs()
+            self.update_idletasks()
 
     def _toggle_classification(self):
         """Toggle between starting and stopping classification."""
@@ -1286,7 +1299,10 @@ object adhering to the defined schema.
             
             print("DEBUG: Starting file enumeration")
             files_enumerated = 0
-            async for file in self.enumerate_files(folder):
+            thresh = None
+            if self._run_mode == "Last Modified":
+                thresh = int(self.threshold_slider.get())
+            async for file in self.enumerate_files(folder, threshold_years=thresh):
                 if not self.processing:  # Check if stopped
                     print("DEBUG: Processing stopped during enumeration")
                     return
@@ -1452,27 +1468,33 @@ object adhering to the defined schema.
                 self._update_action_buttons_visibility()
             self.after(0, final_ui_update)
 
-    async def enumerate_files(self, folder):
-        """Enumerate files in folder with async yield and proper cancellation handling.
-        
-        Args:
-            folder: Path object to enumerate
-            
-        Yields:
-            File paths found in the folder
+    async def enumerate_files(self, folder, *, threshold_years: int | None = None):
+        """Yield files from ``folder`` with optional modification-date filtering.
+
+        Parameters
+        ----------
+        folder : Path
+            Directory to enumerate.
+        threshold_years : int | None, optional
+            Only yield files last modified at least this many years ago.
         """
         try:
             print(f"DEBUG: Starting file enumeration in folder: {folder}")
             file_count = 0
+            cutoff = None
+            if threshold_years is not None:
+                cutoff = datetime.now() - timedelta(days=threshold_years * 365)
             # Use pathlib.rglob which is more efficient
             for file in folder.rglob('*'):
                 # Check for cancellation before yielding each file
                 if not self.processing:
                     print(f"DEBUG: File enumeration stopped (processing=False), found {file_count} files")
                     return  # Clean exit for proper generator cleanup
-                    
+
                 # Only yield actual files (not directories)
                 if file.is_file():
+                    if cutoff and datetime.fromtimestamp(file.stat().st_mtime) >= cutoff:
+                        continue
                     file_count += 1
                     print(f"DEBUG: Yielding file #{file_count}: {file.name} (size: {file.stat().st_size} bytes)")
                     yield file
