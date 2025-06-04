@@ -67,7 +67,7 @@ Write-Host "Building EXE with PyInstaller..."
 # Verify all required paths exist
 $guiDir = Join-Path $scriptRoot "RecordsClassifierGui"
 $iconPath = Join-Path $guiDir "app.ico"
-$mainScript = Join-Path $guiDir "RecordsClassifierGui.py"
+$mainScript = Join-Path $guiDir "gui\app_gui.py"
 $modelDir = Join-Path $scriptRoot "pierce-county-records-classifier-phi2"
 
 # Path existence checks
