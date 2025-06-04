@@ -1,4 +1,4 @@
--e #REMOVED NEED TO REPLACE
+#REMOVED NEED TO REPLACE
 # https://pypi.org/project/
 # Core GUI and LLM dependencies
 customtkinter>=5.2.0
