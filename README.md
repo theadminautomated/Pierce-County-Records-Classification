@@ -17,8 +17,9 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 4. Export results to CSV
 5. Adjustable lines-per-file slider to control context size
 6. Responsive layout with dark mode and keyboard navigation
-7. **Last Modified mode** with a slider to choose how many years back to search
-8. Extensive Schedule 6 keyword list for accurate classification
+7. **Last Modified mode** with a slider shown only when this mode is selected
+8. Inline **RERUN** and **EXPORT** buttons appear after a job completes
+9. Extensive Schedule 6 keyword list for accurate classification
 
 ## System Requirements
 - Windows 10/11 or macOS/Linux with Python **3.8+**
@@ -46,7 +47,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 3. Watch the spinner and progress messages
 4. Read the decision and confidence score
 5. Switch to **Last Modified** mode and adjust the slider to list files older than your chosen number of years
-5. Save to CSV if desired
+6. When finished, use **RERUN** to analyze again or **EXPORT** to save results
 
 ## Minimal Path to Awesome (IT Admins)
 1. Review `config.yaml` or set environment variables for model location
