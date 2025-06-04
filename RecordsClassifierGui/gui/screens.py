@@ -1197,6 +1197,11 @@ object adhering to the defined schema.
             title="Select folder containing files to classify"
         )
         if folder:
+            # Stop any active processing before switching folders
+            if self.processing:
+                self._stop_classification()
+                self.update_idletasks()
+
             # Update UI after dialog closes to avoid perceived freezing
             self.input_folder = folder
             self.folder_entry.delete(0, "end")
