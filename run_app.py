@@ -33,7 +33,7 @@ def main():
         logger.info("Imported RecordsClassifierApp successfully")
 
         # ---- Original launch code retained for reference ----
-        """
+        
         # Start Tkinter mainloop
         app = RecordsClassifierApp()
         app.mainloop()
@@ -59,7 +59,7 @@ def main():
             logger.info("Asyncio event loop closed")
         else:
             logger.info("No active/unclosed asyncio loop found on app instance")
-        """
+        
         # ---- End legacy launch code ----
 
         logger.info("Skipping GUI launch in dummy run (headless/container safe)")
