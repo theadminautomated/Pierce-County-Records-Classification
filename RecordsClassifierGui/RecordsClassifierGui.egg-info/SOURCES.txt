@@ -11,7 +11,7 @@ core/file_scanner.py
 core/import_model.py
 core/llm_engine.py
 core/model_output_validation.py
-gui/RecordsClassifierGui.py
+gui/app_gui.py
 gui/__init__.py
 gui/screens.py
 gui/theme.py
