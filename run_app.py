@@ -1,21 +1,19 @@
 #!/usr/bin/env python
-"""Utility launcher for the Records Classifier GUI.
+"""Records Classifier GUI Launcher – Production.
 
-This script loads the application without invoking any LLM services so it can be
-used safely in CI or other headless environments. The legacy launch code is kept
-for reference but skipped when running in this context.
+Loads and runs the main GUI app. LLM/model/service logic is invoked as needed by the app.
+No dummy/test/stub code—this is the real deal.
 """
 
 import logging
 import sys
 from pathlib import Path
 
-
 def main():
-    """Main entry point for the dummy app launcher."""
+    """Main entry point for the Records Classifier GUI app."""
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
-    logger.info("Dummy app starting...")
+    logger.info("Starting Records Classifier GUI...")
 
     # Add the project root to Python path
     script_dir = Path(__file__).resolve().parent
@@ -30,16 +28,16 @@ def main():
     try:
         from RecordsClassifierGui.gui.app import RecordsClassifierApp
 
-        logger.info("Imported RecordsClassifierApp successfully")
+        logger.info("Imported RecordsClassifierApp successfully.")
 
-        # ---- Original launch code retained for reference ----
-        
+        # ---- Real production launch ----
         # Start Tkinter mainloop
         app = RecordsClassifierApp()
         app.mainloop()
 
         # After mainloop exits, close the asyncio loop properly
         logger.info("Application closing. Finalizing asyncio tasks...")
+        import asyncio
         if hasattr(app, 'async_loop') and app.async_loop.is_running():
             tasks = [task for task in asyncio.all_tasks(loop=app.async_loop) if not task.done()]
             if tasks:
@@ -59,17 +57,14 @@ def main():
             logger.info("Asyncio event loop closed")
         else:
             logger.info("No active/unclosed asyncio loop found on app instance")
-        
-        # ---- End legacy launch code ----
+        # ---- End real launch ----
 
-        logger.info("Skipping GUI launch in dummy run (headless/container safe)")
     except ImportError as e:
         logger.error("Error importing RecordsClassifierApp: %s", e)
         logger.error("Python path: %s", sys.path)
         sys.exit(1)
 
-    logger.info("Dummy app run complete")
-
+    logger.info("App run complete.")
 
 if __name__ == "__main__":
     main()
