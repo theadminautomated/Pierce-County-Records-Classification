@@ -4,11 +4,12 @@ README.md - Pierce County Electronic Records Classifier (Root)
 # Pierce County Electronic Records Classifier (Root)
 
 ## Overview
-This repository provides a modern, production-ready toolkit for electronic records classification using a custom LLM (Ollama) and a user-friendly GUI/CLI. All analysis is performed locally for privacy and compliance.
+This repository provides a production-ready toolkit for electronic records classification using a custom LLM (Ollama).  A lightweight Streamlit interface is provided for ease of use. All analysis is performed locally for privacy and compliance.
 
 ## Repository Structure
 - `Electronic-Records-Classification.py`: Production CLI for records classification
-- `RecordsClassifierGui/`: Modern GUI for records classification
+- `streamlit_app.py`: Modern web UI powered by Streamlit
+- `RecordsClassifierGui/`: Backend logic and legacy GUI code
 - `pierce-county-records-classifier-phi2/`: Custom LLM model for Ollama
 - `Deploy.ps1`: Automated deployment and model import
 - `Modelfile`: LLM prompt and configuration
@@ -61,7 +62,6 @@ A: In your home directory as `.pc_records_classifier_settings.pkl`.
 ## Developer Notes
 - All major functions and UI elements are documented with docstrings
 - Modular codebase: UI, logic, and validation are separated
-- Use the TODO list above to guide contributions
 - See inline comments for advanced customization
 
 ---
@@ -85,6 +85,13 @@ The sample `config.yaml` may contain:
 ```yaml
 model_name: pierce-county-records-classifier-phi2:latest
 ollama_url: http://localhost:11434
+```
+
+## Running the UI
+Launch the Streamlit interface with:
+
+```bash
+streamlit run streamlit_app.py
 ```
 
 ## Testing

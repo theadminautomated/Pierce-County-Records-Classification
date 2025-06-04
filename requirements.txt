@@ -16,6 +16,7 @@ jsonschema>=4.24.0
 PyYAML>=6.0
 pandas>=2.2.2            # CSV/XLSX export, robust tabular handling
 pytest>=8.2.1            # Unit/integration tests
+streamlit>=1.35.0        # Web-based user interface
 
 # Optional/legacy format fallback
 antiword; platform_system=="Windows"   # For .doc (legacy Word)
