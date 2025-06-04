@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['N:\\IT Ops\\Product_Support_Documentation\\M365 Administration\\Records\\RecordsClassifierGui\\RecordsClassifierGui.py'],
+    ['N:\\IT Ops\\Product_Support_Documentation\\M365 Administration\\Records\\RecordsClassifierGui\\app_gui.py'],
     pathex=[],
     binaries=[],
     datas=[('N:\\IT Ops\\Product_Support_Documentation\\M365 Administration\\Records\\RecordsClassifierGui', 'RecordsClassifierGui'), ('N:\\IT Ops\\Product_Support_Documentation\\M365 Administration\\Records\\pierce-county-records-classifier-phi2', 'pierce-county-records-classifier-phi2'), ('N:\\IT Ops\\Product_Support_Documentation\\M365 Administration\\Records\\installer', 'installer')],
