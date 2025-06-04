@@ -18,16 +18,13 @@ def main():
     # Add the project root to Python path
     script_dir = Path(__file__).resolve().parent
     if str(script_dir) not in sys.path:
-        sys.path.insert(0, str(script_dir))
-
-    # Add the RecordsClassifierGui package directory to Python path
+        sys.path.insert(0, str(script_dir))    # Add the RecordsClassifierGui package directory to Python path
     package_dir = script_dir / "RecordsClassifierGui"
     if str(package_dir) not in sys.path:
         sys.path.insert(0, str(package_dir))
 
     try:
         from RecordsClassifierGui.gui.app import RecordsClassifierApp
-
         logger.info("Imported RecordsClassifierApp successfully.")
 
         # ---- Real production launch ----
