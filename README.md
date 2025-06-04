@@ -12,11 +12,12 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 
 ## Main Features
 1. Modern Streamlit web interface
-2. Local LLM classification with rule‑based fallback
+2. Local classification engine with lightweight heuristics
 3. Works with PDF, Office, images, and text files
 4. Export results to CSV
 5. Adjustable lines-per-file slider to control context size
 6. Responsive layout with dark mode and keyboard navigation
+7. **Last Modified mode** to quickly find records older than six years
 
 ## System Requirements
 - Windows 10/11 or macOS/Linux with Python **3.8+**
@@ -43,6 +44,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 2. Click **Browse** and choose a document
 3. Watch the spinner and progress messages
 4. Read the decision and confidence score
+5. Switch to **Last Modified** mode to list files older than six years
 5. Save to CSV if desired
 
 ## Minimal Path to Awesome (IT Admins)
@@ -75,5 +77,5 @@ Key improvements:
 - Progress spinners and status messages for every step
 
 ## About
-Version: `1.0.0`
+Version: `1.1.0`
 Support: [records-support@example.com](mailto:records-support@example.com)
