@@ -46,6 +46,13 @@ def classify(file_path: Path, engine: ClassificationEngine, mode: str, years: in
             }
         )
 
+    st.session_state["last_result"] = {
+        "file": result.file_name,
+        "determination": result.model_determination,
+        "confidence": result.confidence_score,
+        "insights": result.contextual_insights,
+    }
+
 
 def show_about() -> None:
     """Display about/help information."""
@@ -68,11 +75,23 @@ def main() -> None:
         "Mode",
         options=["Classification", "Last Modified"],
         horizontal=True,
+        help="Choose 'Classification' to analyze a document or 'Last Modified' to auto-destroy old files.",
     )
 
-    years = st.slider("Last Modified Threshold (years)", 1, 10, 6)
+    years = None
+    if mode == "Last Modified":
+        years = st.slider(
+            "Last Modified Threshold (years)",
+            1,
+            10,
+            6,
+            help="Files older than this will be classified as DESTROY.",
+        )
 
-    uploaded_file = st.file_uploader("Upload a file for classification")
+    uploaded_file = st.file_uploader(
+        "Upload a file for classification",
+        help="Supported formats: PDF, DOCX, etc. Example: invoice.pdf",
+    )
     if uploaded_file:
         st.info(f"Saving {uploaded_file.name}...")
         with st.spinner("Saving file..."):
@@ -81,6 +100,22 @@ def main() -> None:
             st.success("File saved")
             st.write(f"Name: {file_path.name} | Size: {file_path.stat().st_size} bytes")
             classify(file_path, engine, mode, years)
+            st.session_state["last_file"] = file_path
+
+    if st.session_state.get("last_file") and not st.session_state.get("running"):
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("RERUN", help="Run classification again on the last uploaded file"):
+                classify(st.session_state["last_file"], engine, mode, years)
+        with col2:
+            result = st.session_state.get("last_result")
+            if result:
+                st.download_button(
+                    "EXPORT",
+                    data=str(result),
+                    file_name="classification.json",
+                    help="Download the latest classification result",
+                )
 
 
 if __name__ == "__main__":

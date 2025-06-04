@@ -141,6 +141,19 @@ class LLMEngine:
         """Initialize real LLM clients when available."""
         logger.info("LLMEngine running in lightweight mode; no external service")
 
+    def _extract_snippet(self, content: str, keyword: str, window: int = 80) -> str:
+        """Return text snippet around a keyword or start of content."""
+        try:
+            if keyword:
+                lower = content.lower()
+                idx = lower.find(keyword.lower())
+                if idx != -1:
+                    start = max(0, idx - window // 2)
+                    return content[start:start + window].replace("\n", " ")
+            return content[:window].replace("\n", " ")
+        except Exception:
+            return content[:window].replace("\n", " ")
+
     def classify_with_llm(
         self,
         model: str,
@@ -178,30 +191,36 @@ class LLMEngine:
                     ),
                     "",
                 )
-                # Map OFFICIAL schedule to KEEP determination
                 determination = "KEEP" if best_label == "OFFICIAL" else best_label
                 base_conf = 50 + min(keyword_counts[best_label] * 10, 40)
+                snippet = self._extract_snippet(content, first_match)
+                insights = (
+                    f"The file includes the keyword '{first_match}', indicating a {determination.lower()} record."
+                    f" Example text: '{snippet}'."
+                    " This aligns with WA Schedule 6 guidance."
+                )
                 return {
                     "modelDetermination": determination,
                     "confidenceScore": base_conf,
-                    "contextualInsights": (
-                        f"Matched keyword '{first_match}'"
-                        if first_match
-                        else "Schedule 6 heuristic"
-                    ),
+                    "contextualInsights": insights,
                 }
 
-            snippet = text[:50]
+            snippet = self._extract_snippet(content, "")
+            insights = (
+                "No Schedule 6 keywords were found in the sampled text. "
+                f"The document starts with: '{snippet}'. "
+                "Based on this, the record appears transitory."
+            )
             return {
                 "modelDetermination": "TRANSITORY",
                 "confidenceScore": 50,
-                "contextualInsights": f"No Schedule 6 keywords found. Sample: '{snippet}'",
+                "contextualInsights": insights,
             }
 
         except Exception as exc:  # pragma: no cover - unexpected failures
             logger.error("Heuristic classification failed: %s", exc)
             return {
-                "modelDetermination": "ERROR",
+                "modelDetermination": "TRANSITORY",
                 "confidenceScore": 0,
                 "contextualInsights": f"Error: {exc}",
             }
@@ -319,7 +338,7 @@ class ClassificationEngine:
                     full_path=str(file_path.resolve()),
                     last_modified=mtime.isoformat(),
                     size_kb=size_kb,
-                    model_determination="SKIP",
+                    model_determination="TRANSITORY",
                     confidence_score=100,
                     contextual_insights=f"Excluded file type: {extension}",
                     status="skipped",
@@ -337,7 +356,7 @@ class ClassificationEngine:
                     full_path=str(file_path.resolve()),
                     last_modified=mtime.isoformat(),
                     size_kb=size_kb,
-                    model_determination="SKIP",
+                    model_determination="TRANSITORY",
                     confidence_score=100,
                     contextual_insights=f"Unsupported file type: {extension}",
                     status="skipped",
@@ -374,7 +393,7 @@ class ClassificationEngine:
                     full_path=str(file_path.resolve()),
                     last_modified=mtime.isoformat(),
                     size_kb=size_kb,
-                    model_determination="SKIP",
+                    model_determination="TRANSITORY",
                     confidence_score=100,
                     contextual_insights=f"File newer than {threshold_years} years",
                     status="skipped",
@@ -426,7 +445,7 @@ class ClassificationEngine:
                 full_path=str(file_path.resolve()),
                 last_modified=mtime.isoformat(),
                 size_kb=size_kb,
-                model_determination=llm_result.get("modelDetermination", "ERROR"),
+                model_determination=llm_result.get("modelDetermination", "TRANSITORY"),
                 confidence_score=confidence_score,
                 contextual_insights=llm_result.get("contextualInsights", ""),
                 status="success",
@@ -457,7 +476,7 @@ class ClassificationEngine:
                 full_path=str(file_path.resolve()),
                 last_modified=mtime.isoformat(),
                 size_kb=size_kb,
-                model_determination="ERROR",
+                model_determination="TRANSITORY",
                 confidence_score=0,
                 contextual_insights=f"Processing error: {msg[:200]}",
                 status="error",
