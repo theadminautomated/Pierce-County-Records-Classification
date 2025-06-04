@@ -16,6 +16,7 @@ def _import_local(name):
     sys.modules[name] = mod
     spec.loader.exec_module(mod)
     return mod
+
 from .theme import theme
 
 # Get the font family from theme module directly
