@@ -16,7 +16,18 @@ from pathlib import Path
 from typing import Dict, Any, List, Set, Optional, Union
 from dataclasses import dataclass
 import logging
-from ..core import model_output_validation
+
+# Import model_output_validation with absolute import
+try:
+    from RecordsClassifierGui.core import model_output_validation
+except ImportError:
+    # Fallback for when running from different contexts
+    import sys
+    import os
+    core_path = os.path.join(os.path.dirname(__file__), '..', 'core')
+    if core_path not in sys.path:
+        sys.path.insert(0, core_path)
+    import model_output_validation
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -83,7 +94,7 @@ class LLMEngine:
         """Classify content using WA Schedule 6 heuristics.
 
         The model analyzes the text while keyword matches contribute only to
-        the confidence score.
+        the confidence score. Output determination and ContextualInsights as a justification for your determination - citing content.
         """
 
         try:

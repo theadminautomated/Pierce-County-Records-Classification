@@ -7,7 +7,9 @@ No dummy/test/stub code—this is the real deal.
 
 import logging
 import sys
+import os
 from pathlib import Path
+import importlib.util
 
 def main():
     """Main entry point for the Records Classifier GUI app."""
@@ -18,13 +20,32 @@ def main():
     # Add the project root to Python path
     script_dir = Path(__file__).resolve().parent
     if str(script_dir) not in sys.path:
-        sys.path.insert(0, str(script_dir))    # Add the RecordsClassifierGui package directory to Python path
+        sys.path.insert(0, str(script_dir))
+    
+    # Add the RecordsClassifierGui package directory to Python path
     package_dir = script_dir / "RecordsClassifierGui"
     if str(package_dir) not in sys.path:
         sys.path.insert(0, str(package_dir))
+    
+    # Set PYTHONPATH environment variable to help with relative imports
+    current_pythonpath = os.environ.get('PYTHONPATH', '')
+    new_paths = [str(script_dir), str(package_dir)]
+    if current_pythonpath:
+        os.environ['PYTHONPATH'] = os.pathsep.join(new_paths + [current_pythonpath])
+    else:
+        os.environ['PYTHONPATH'] = os.pathsep.join(new_paths)
 
     try:
-        from RecordsClassifierGui.gui.app import RecordsClassifierApp
+        # Dynamically load the GUI application module (preserves package context)
+        gui_app_path = package_dir / "gui" / "app.py"
+        spec = importlib.util.spec_from_file_location(
+            "RecordsClassifierGui.gui.app",
+            str(gui_app_path),
+            submodule_search_locations=[str(package_dir / "gui")]
+        )
+        app_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(app_module)
+        RecordsClassifierApp = app_module.RecordsClassifierApp
         logger.info("Imported RecordsClassifierApp successfully.")
 
         # ---- Real production launch ----
@@ -59,7 +80,21 @@ def main():
     except ImportError as e:
         logger.error("Error importing RecordsClassifierApp: %s", e)
         logger.error("Python path: %s", sys.path)
-        sys.exit(1)
+        logger.error("PYTHONPATH: %s", os.environ.get('PYTHONPATH', 'Not set'))
+        
+        # Try alternative import method
+        try:
+            logger.info("Attempting alternative import method...")
+            # Fallback: import by full package path
+            from RecordsClassifierGui.gui.app import RecordsClassifierApp
+            logger.info("Alternative import successful.")
+            
+            app = RecordsClassifierApp()
+            app.mainloop()
+            
+        except ImportError as e2:
+            logger.error("Alternative import also failed: %s", e2)
+            sys.exit(1)
 
     logger.info("App run complete.")
 
