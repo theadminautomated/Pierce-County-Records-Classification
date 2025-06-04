@@ -10,7 +10,7 @@ Pillow>=10.3.0
 
 # If you use any LLM/model integration (Ollama, etc.), add here:
 # ollama (uncomment if used)
-ollama>=0.1.7
+ollama>=0.1.8
 
 # For CSV export, pandas is optional but recommended for robust handling
 pandas>=2.2.2
@@ -32,7 +32,7 @@ PyPDF2>=3.0.0
 pdfplumber>=0.8.1
 pytesseract>=0.3.10
 pdf2image>=1.16.0
-# textract==1.6.5  # TODO: Integrate for advanced document parsing if/when required for production workloads
 
 # For robust validation
 jsonschema>=4.24.0
+

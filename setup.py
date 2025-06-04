@@ -62,8 +62,7 @@ def install_dependencies():
     dependencies = [
         "customtkinter>=5.2.0",
         "Pillow>=9.0.0",
-        "ollama>=0.1.7",
-        "psutil>=5.9.0",
+        "ollama>=0.1.8",
         "openpyxl>=3.1.2",
         "python-docx>=0.8.11",
         "python-pptx>=0.6.21",
@@ -71,9 +70,11 @@ def install_dependencies():
         "pdfplumber>=0.8.1",
         "pytesseract>=0.3.10",
         "pdf2image>=1.16.0",
-        "textract>=1.7.0",
         "typing-extensions>=4.0.0",
-        "xlrd>=2.0.1"
+        "xlrd>=2.0.1",
+        "jsonschema>=4.24.0",
+        "pandas>=2.2.2",
+        "pytest>=8.2.1"
     ]
     all_ok = True
     for dep in dependencies:

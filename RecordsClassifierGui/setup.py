@@ -8,7 +8,7 @@ setup(
         "Pillow>=10.3.0",
         "pandas>=2.2.2",
         "pytest>=8.2.1",
-        "ollama>=0.1.0",
+        "ollama>=0.1.8",
         # Document parsing dependencies
         "python-docx>=0.8.11",
         "python-pptx>=0.6.21",
@@ -16,7 +16,6 @@ setup(
         "pdfplumber>=0.8.1",
         "pytesseract>=0.3.10",
         "pdf2image>=1.16.0",
-        "textract>=1.7.0",
         "jsonschema>=4.24.0"
     ],
     include_package_data=True,
