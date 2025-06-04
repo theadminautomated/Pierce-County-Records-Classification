@@ -8,7 +8,7 @@ This package contains the user interface components:
 """
 
 # Re-export only core modules for gui package
-from RecordsClassifierGui.gui.theme import *
-from RecordsClassifierGui.gui.screens import *
+from .theme import *
+from .screens import *
 
 __all__ = ['screens', 'screens_optimized', 'theme']
