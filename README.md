@@ -18,6 +18,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 5. Adjustable lines-per-file slider to control context size
 6. Responsive layout with dark mode and keyboard navigation
 7. **Last Modified mode** with a slider to choose how many years back to search
+8. Extensive Schedule 6 keyword list for accurate classification
 
 ## System Requirements
 - Windows 10/11 or macOS/Linux with Python **3.8+**
@@ -77,5 +78,5 @@ Key improvements:
 - Progress spinners and status messages for every step
 
 ## About
-Version: `1.1.0`
+Version: `1.1.1`
 Support: [records-support@example.com](mailto:records-support@example.com)
