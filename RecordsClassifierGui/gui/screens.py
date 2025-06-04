@@ -703,30 +703,30 @@ class MainScreen(ctk.CTkFrame):
         )
         self.run_button.pack(side="left", padx=(0, 10), anchor="center")
         
-        # Parallel jobs slider
+        # Lines-per-file slider for controlling the amount of text analyzed
         ctk.CTkLabel(
             button_frame,
-            text="Parallel Jobs:",
+            text="Lines Per File:",
             font=(FONT_FAMILY, 11)
         ).pack(side="left", padx=(20, 5), anchor="center")
-        
-        self.jobs_slider = ctk.CTkSlider(
+
+        self.lines_slider = ctk.CTkSlider(
             button_frame,
-            from_=1,
-            to=multiprocessing.cpu_count(),
-            number_of_steps=multiprocessing.cpu_count()-1,
-            width=100
+            from_=10,
+            to=500,
+            number_of_steps=490,
+            width=120
         )
-        self.jobs_slider.set(min(4, multiprocessing.cpu_count()))
-        self.jobs_slider.pack(side="left", padx=(0, 10), anchor="center")
-        
-        self.jobs_label = ctk.CTkLabel(
+        self.lines_slider.set(100)
+        self.lines_slider.pack(side="left", padx=(0, 10), anchor="center")
+
+        self.lines_label = ctk.CTkLabel(
             button_frame,
-            text=f"{int(self.jobs_slider.get())}",
+            text=f"{int(self.lines_slider.get())}",
             font=(FONT_FAMILY, 11)
         )
-        self.jobs_label.pack(side="left", anchor="center")
-        self.jobs_slider.configure(command=self._update_jobs_label)
+        self.lines_label.pack(side="left", anchor="center")
+        self.lines_slider.configure(command=self._update_lines_label)
         
         # Add dropdown for classification mode
         self.mode_var = tk.StringVar(value="Classification")
@@ -739,13 +739,13 @@ class MainScreen(ctk.CTkFrame):
         )
         mode_dropdown.grid(row=0, column=1, sticky="e", padx=(0, 20))
 
-    def _update_jobs_label(self, value):
-        """Update the jobs label when slider value changes.
-        
+    def _update_lines_label(self, value):
+        """Update the lines-per-file label when slider value changes.
+
         Args:
             value: New slider value
         """
-        self.jobs_label.configure(text=f"{int(float(value))}")
+        self.lines_label.configure(text=f"{int(float(value))}")
         
     def _setup_results_table(self, parent):
         """Setup the results table with headers and data display.
@@ -778,9 +778,9 @@ class MainScreen(ctk.CTkFrame):
             font=(FONT_FAMILY, 11, "bold"),
             height=28,
             width=80,
-            fg_color=theme.get('accent', '#0078d4'),
-            text_color='white',
-            hover_color=theme.get('accent_hover', '#005fa3'),
+            fg_color=theme.get('button_warning', '#FFC107'),
+            text_color=theme.get('button_fg', 'white'),
+            hover_color=theme.get('button_warning_hover', '#e0a800'),
             command=self._toggle_classification
         )
         self.rerun_btn.grid(row=0, column=1, padx=(10, 0))
@@ -792,9 +792,9 @@ class MainScreen(ctk.CTkFrame):
             font=(FONT_FAMILY, 11, "bold"),
             height=28,
             width=80,
-            fg_color=theme.get('accent', '#0078d4'),
-            text_color='white',
-            hover_color=theme.get('accent_hover', '#005fa3'),
+            fg_color=theme.get('button_success', '#28A745'),
+            text_color=theme.get('button_fg', 'white'),
+            hover_color=theme.get('button_success_hover', '#218838'),
             command=self.export_results
         )
         self.export_btn.grid(row=0, column=2, padx=(10, 0))
@@ -980,7 +980,7 @@ object adhering to the defined schema.
                     self.model,      # model
                     instructions,    # instructions
                     0.1,            # temperature (default from CLI version)
-                    100             # max_lines (default from CLI version)
+                    int(self.lines_slider.get())  # max_lines from slider
                 )
                 
                 print(f"DEBUG: classification_engine.classify_file returned: {classification_result}")
@@ -1113,14 +1113,14 @@ object adhering to the defined schema.
         # Visual cue: update status bar and transient button state
         self.status_text.configure(text=f"Export complete: {file_path}")
         original_text = self.export_btn.cget('text')
-        original_color = theme.get('accent')
+        original_color = theme.get('button_success')
         
         # Change button to indicate success
-        self.export_btn.configure(text="Exported", fg_color=theme.get('success', '#28A745'))
+        self.export_btn.configure(text="Exported", fg_color=theme.get('button_success', '#28A745'))
         
         # Reset after delay
         def _reset_export_button():
-            self.export_btn.configure(text=original_text, fg_color=theme.get('accent', original_color))
+            self.export_btn.configure(text=original_text, fg_color=theme.get('button_success', original_color))
             self.status_text.configure(text="Ready")
         self.after(3000, _reset_export_button)
 
