@@ -1526,20 +1526,6 @@ object adhering to the defined schema.
         self._run_mode = "Last Modified"
         self._start_classification()
 
-    def _process_file(self, file_path: str):
-        """Process a single file for classification based on the current run mode."""
-        try:
-            if self._run_mode == "Last Modified":
-                # Directly classify based on last modified date
-                classification_result = self.classification_engine.classify_file(file_path, run_mode="Last Modified")
-            else:
-                # Default classification mode
-                classification_result = self.classification_engine.classify_file(file_path)
-
-            # Update UI with classification result
-            self._update_classification_result(file_path, classification_result)
-        except Exception as e:
-            self.status_text.configure(text=f"Error processing file {file_path}: {str(e)}")
 
     def _start_classification(self):
         """Start the classification process using asyncio for non-blocking operations."""
