@@ -1,4 +1,3 @@
-import tempfile
 import os
 import datetime
 import tempfile
@@ -33,6 +32,7 @@ def test_last_modified_mode_auto_destroy(tmp_path):
     os.utime(file_path, (old_time, old_time))
     result = engine.classify_file(file_path, run_mode="Last Modified")
     assert result.model_determination == "DESTROY"
+    assert result.contextual_insights == "Older than 6 years - automatic destroy"
 
 
 def test_last_modified_custom_threshold(tmp_path):
@@ -69,6 +69,20 @@ def test_old_file_destroy_even_if_skipped(tmp_path):
     os.utime(file_path, (old_time, old_time))
     result = engine.classify_file(file_path)
     assert result.model_determination == "DESTROY"
+    assert result.contextual_insights == "Older than 6 years - automatic destroy"
+
+
+def test_auto_destroy_context(tmp_path):
+    engine = ClassificationEngine(timeout_seconds=1)
+    file_path = tmp_path / "very_old.txt"
+    file_path.write_text("data")
+    old_time = (
+        datetime.datetime.now() - datetime.timedelta(days=6 * 365 + 2)
+    ).timestamp()
+    os.utime(file_path, (old_time, old_time))
+    result = engine.classify_file(file_path)
+    assert result.model_determination == "DESTROY"
+    assert result.contextual_insights == "Older than 6 years - automatic destroy"
 
 
 def test_classify_directory_generator(tmp_path):
@@ -82,6 +96,19 @@ def test_classify_directory_generator(tmp_path):
     )
     assert len(results) == 5
     assert all(r.model_determination for r in results)
+
+
+def test_classify_directory_includes_old(tmp_path):
+    engine = ClassificationEngine(timeout_seconds=1)
+    old_file = tmp_path / "old.txt"
+    old_file.write_text("abc")
+    old_time = (
+        datetime.datetime.now() - datetime.timedelta(days=6 * 365 + 3)
+    ).timestamp()
+    os.utime(old_file, (old_time, old_time))
+
+    results = list(classify_directory(tmp_path, engine=engine))
+    assert any(r.file_name == "old.txt" and r.model_determination == "DESTROY" for r in results)
 
 
 def test_last_modified_skip_returns_na(tmp_path):

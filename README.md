@@ -79,7 +79,7 @@ Key improvements:
 - Clear color contrast and keyboard shortcuts
 - Progress spinners and status messages for every step
 
-The classifier labels files as **KEEP**, **DESTROY**, **TRANSITORY**, or **NA**. "NA" is used for files that are skipped because they are unreadable or an unsupported type. Anything older than 6 years is automatically marked **DESTROY**.
+The classifier labels files as **KEEP**, **DESTROY**, **TRANSITORY**, or **NA**. "NA" is used for files that are skipped because they are unreadable or an unsupported type. Anything older than 6 years is automatically marked **DESTROY** and bypasses the LLM entirely, with contextual insights set to "Older than 6 years - automatic destroy".
 
 ## About
 Version: `1.1.1`
