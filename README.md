@@ -20,6 +20,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 7. **Last Modified mode** with a slider shown only when this mode is selected
 8. Inline **RERUN** and **EXPORT** buttons appear after a job completes
 9. Extensive Schedule 6 keyword list for accurate classification
+10. Clear results table showing **File Path** and a new **NA** category for skipped files
 
 ## System Requirements
 - Windows 10/11 or macOS/Linux with Python **3.8+**
@@ -77,6 +78,8 @@ Key improvements:
 - Responsive design works on tablets and desktops
 - Clear color contrast and keyboard shortcuts
 - Progress spinners and status messages for every step
+
+The classifier labels files as **KEEP**, **DESTROY**, **TRANSITORY**, or **NA**. "NA" is used for files that are skipped because they are unreadable or an unsupported type. Anything older than 6 years is automatically marked **DESTROY**.
 
 ## About
 Version: `1.1.1`
