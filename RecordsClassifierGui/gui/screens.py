@@ -590,6 +590,8 @@ class MainScreen(ctk.CTkFrame):
         self._sim_items_processed = 0
         self._classification_task = None
         self._toggle_lock = threading.Lock()
+        # Track current run mode (Classification or Last Modified)
+        self._run_mode = "Classification"
 
         # Configure grid layout
         self.grid_rowconfigure(0, weight=1)
@@ -974,13 +976,14 @@ object adhering to the defined schema.
                 
                 # Use the robust classification engine instead of the hanging process_file
                 classification_result = await loop.run_in_executor(
-                    executor, 
+                    executor,
                     classification_engine.classify_file,
                     file_path,       # file_path (Path object)
                     self.model,      # model
                     instructions,    # instructions
                     0.1,            # temperature (default from CLI version)
-                    int(self.lines_slider.get())  # max_lines from slider
+                    int(self.lines_slider.get()),  # max_lines from slider
+                    self._run_mode  # run mode
                 )
                 
                 print(f"DEBUG: classification_engine.classify_file returned: {classification_result}")
@@ -1173,6 +1176,7 @@ object adhering to the defined schema.
                 if self.mode_var.get() == "Last Modified":
                     self._last_modified_classification()
                 else:
+                    self._run_mode = "Classification"
                     self._start_classification()
         finally:
             self._toggle_lock.release()
@@ -1459,6 +1463,9 @@ object adhering to the defined schema.
     def _start_classification(self):
         """Start the classification process using asyncio for non-blocking operations."""
         try:
+            # Default to regular classification mode unless overridden
+            self._run_mode = getattr(self, "_run_mode", "Classification")
+
             if not self.input_folder or not os.path.exists(self.input_folder):
                 messagebox.showerror("Error", "Please select a valid input folder.")
                 return
