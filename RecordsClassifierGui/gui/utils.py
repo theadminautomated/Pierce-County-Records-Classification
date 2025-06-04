@@ -4,11 +4,11 @@ Includes robust, type-safe, and extensible widget hover effect management.
 """
 
 """
-RecordsClassifierGui.gui.utils - Enterprise-grade Utility functions for the Records Classifier GUI
+app_gui.utils - Enterprise-grade Utility functions for the Records Classifier GUI
 Includes robust, type-safe, and extensible widget hover effect management.
 """
 
-# This file is part of the RecordsClassifierGui.gui package
+# This file is part of the app_gui package
 from typing import Optional, Any
 import tkinter as tk
 import sys
