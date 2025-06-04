@@ -7,6 +7,8 @@ def test_env_overrides(tmp_path, monkeypatch):
     monkeypatch.setenv("PCRC_CONFIG", str(cfg_file))
     monkeypatch.setenv("PCRC_MODEL", "b")
     monkeypatch.setenv("PCRC_OLLAMA_URL", "http://y")
+    monkeypatch.setenv("PCRC_BATCH_SIZE", "15")
     cfg = load_config()
     assert cfg.model_name == "b"
     assert cfg.ollama_url == "http://y"
+    assert cfg.batch_size == 15

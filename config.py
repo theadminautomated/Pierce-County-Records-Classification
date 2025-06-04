@@ -23,10 +23,13 @@ class AppConfig:
         Name of the model to use.
     ollama_url: str
         Base URL for the Ollama service.
+    batch_size: int
+        Number of files processed per batch.
     """
 
     model_name: str = "pierce-county-records-classifier-phi2:latest"
     ollama_url: str = "http://localhost:11434"
+    batch_size: int = 10
 
 
 def load_config() -> AppConfig:
@@ -47,10 +50,16 @@ def load_config() -> AppConfig:
             data = {}
     env_model = os.environ.get("PCRC_MODEL")
     env_url = os.environ.get("PCRC_OLLAMA_URL")
+    env_batch = os.environ.get("PCRC_BATCH_SIZE")
     if env_model:
         data["model_name"] = env_model
     if env_url:
         data["ollama_url"] = env_url
+    if env_batch:
+        try:
+            data["batch_size"] = int(env_batch)
+        except ValueError:
+            logger.warning("Invalid PCRC_BATCH_SIZE: %s", env_batch)
     return AppConfig(**data)
 
 CONFIG = load_config()

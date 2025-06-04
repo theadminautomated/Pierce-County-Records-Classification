@@ -25,6 +25,7 @@ from typing import Any, Dict, Optional
 
 import customtkinter as ctk
 import importlib.util
+from config import CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -824,6 +825,18 @@ class MainScreen(ctk.CTkFrame):
         )
         header_label.grid(row=0, column=0, sticky="w")
 
+        # Classification filter dropdown
+        self.filter_var = tk.StringVar(value="All")
+        self.filter_dropdown = ctk.CTkComboBox(
+            header_row,
+            width=120,
+            values=["All", "KEEP", "DESTROY", "TRANSITORY", "SKIPPED", "ERROR"],
+            variable=self.filter_var,
+            command=lambda _=None: self._apply_filter(),
+        )
+        self.filter_dropdown.grid(row=0, column=1, padx=(10, 0))
+        self.filter_dropdown.grid_remove()
+
         # Inline RERUN and EXPORT buttons (initially hidden)
         self.rerun_btn = ctk.CTkButton(
             header_row,
@@ -836,7 +849,7 @@ class MainScreen(ctk.CTkFrame):
             hover_color=theme.get("button_warning_hover", "#e0a800"),
             command=self._toggle_classification,
         )
-        self.rerun_btn.grid(row=0, column=1, padx=(10, 0))
+        self.rerun_btn.grid(row=0, column=2, padx=(10, 0))
         self.rerun_btn.grid_remove()
 
         self.export_btn = ctk.CTkButton(
@@ -850,7 +863,7 @@ class MainScreen(ctk.CTkFrame):
             hover_color=theme.get("button_success_hover", "#218838"),
             command=self.export_results,
         )
-        self.export_btn.grid(row=0, column=2, padx=(10, 0))
+        self.export_btn.grid(row=0, column=3, padx=(10, 0))
         self.export_btn.grid_remove()
 
         # Create table container with scrollbars
@@ -929,9 +942,11 @@ class MainScreen(ctk.CTkFrame):
         if not self.processing and has_items:
             self.rerun_btn.grid()
             self.export_btn.grid()
+            self.filter_dropdown.grid()
         else:
             self.rerun_btn.grid_remove()
             self.export_btn.grid_remove()
+            self.filter_dropdown.grid_remove()
 
     def update_ui_sync(self, file_result, total_files):
         """Thread-safe UI update for file processing with immediate visual feedback.
@@ -972,6 +987,7 @@ class MainScreen(ctk.CTkFrame):
                 logger.debug("Inserting values into tree: %s", values)
 
                 item_id = self.tree.insert("", "end", values=values)
+                self.results_data.append(file_result)
                 logger.debug("Inserted item with ID: %s", item_id)
 
                 # Scroll to the latest entry to show progress
@@ -1179,7 +1195,11 @@ object adhering to the defined schema.
                                     )
 
                         # Update UI state
-                        self.run_button.configure(text="Start Classification")
+                        self.run_button.configure(
+                            text="Start Classification",
+                            fg_color=theme.get("button_bg", "#0078D7"),
+                            hover_color=theme.get("button_hover", "#005A9E"),
+                        )
                         self.status_text.configure(text="Classification stopped")
                         self._update_action_buttons_visibility()
                         logger.debug("UI updated after cancellation")
@@ -1191,7 +1211,11 @@ object adhering to the defined schema.
                         logger.info(f"ERROR: Traceback: {traceback.format_exc()}")
                         # Fallback UI update
                         try:
-                            self.run_button.configure(text="Start Classification")
+                            self.run_button.configure(
+                                text="Start Classification",
+                                fg_color=theme.get("button_bg", "#0078D7"),
+                                hover_color=theme.get("button_hover", "#005A9E"),
+                            )
                             self.status_text.configure(text="Classification stopped")
                             self._update_action_buttons_visibility()
                             logger.debug("Fallback UI update completed")
@@ -1209,7 +1233,11 @@ object adhering to the defined schema.
                 logger.info(f"ERROR: Traceback: {traceback.format_exc()}")
                 # Immediate fallback UI update
                 try:
-                    self.run_button.configure(text="Start Classification")
+                    self.run_button.configure(
+                        text="Start Classification",
+                        fg_color=theme.get("button_bg", "#0078D7"),
+                        hover_color=theme.get("button_hover", "#005A9E"),
+                    )
                     self.status_text.configure(text="Classification stopped")
                     self._update_action_buttons_visibility()
                     logger.debug("Immediate fallback UI update completed")
@@ -1219,7 +1247,11 @@ object adhering to the defined schema.
             logger.debug("No active task to cancel")
             # Update UI immediately if no task to cancel
             try:
-                self.run_button.configure(text="Start Classification")
+                self.run_button.configure(
+                    text="Start Classification",
+                    fg_color=theme.get("button_bg", "#0078D7"),
+                    hover_color=theme.get("button_hover", "#005A9E"),
+                )
                 self.status_text.configure(text="Classification stopped")
                 self._update_action_buttons_visibility()
                 logger.debug("UI updated immediately (no task to cancel)")
@@ -1289,6 +1321,31 @@ object adhering to the defined schema.
         """
         self._update_action_buttons_visibility()
 
+    def _apply_filter(self):
+        """Filter displayed results by classification."""
+        selection = self.filter_var.get()
+        self.tree.delete(*self.tree.get_children())
+        for res in self.results_data:
+            cls = res.get("ModelDetermination", "")
+            if selection != "All" and cls != selection:
+                continue
+            raw_date = res.get("LastModified", "")
+            try:
+                dt = datetime.fromisoformat(str(raw_date))
+                mtime = dt.strftime("%m/%d/%Y")
+            except Exception:
+                mtime = raw_date
+            values = (
+                res.get("FileName", ""),
+                f"{res.get('SizeKB', 0)} KB",
+                mtime,
+                cls,
+                res.get("ConfidenceScore", ""),
+                res.get("Status", ""),
+                res.get("ContextualInsights", ""),
+            )
+            self.tree.insert("", "end", values=values)
+
     def _on_folder_change(self, event=None):
         """Handle folder path changes from entry widget.
 
@@ -1326,7 +1383,12 @@ object adhering to the defined schema.
                 self._stop_classification()
             else:
                 # Ensure button remains enabled during processing
-                self.run_button.configure(state="normal", text="Stop Classification")
+                self.run_button.configure(
+                    state="normal",
+                    text="Stop Classification",
+                    fg_color=theme.get("button_danger", "#DC3545"),
+                    hover_color=theme.get("button_warning_hover", "#c82333"),
+                )
 
                 if self.mode_var.get() == "Last Modified":
                     self._last_modified_classification()
@@ -1442,7 +1504,7 @@ object adhering to the defined schema.
 
             # Process files as we find them for real-time updates
             files_batch = []
-            batch_size = 5  # Process in small batches for responsiveness
+            batch_size = max(1, CONFIG.batch_size)
 
             logger.debug("Starting file enumeration")
             files_enumerated = 0
@@ -1649,7 +1711,10 @@ object adhering to the defined schema.
 
                 def update_complete_status():
                     self.run_button.configure(
-                        state="normal", text="Start Classification"
+                        state="normal",
+                        text="Start Classification",
+                        fg_color=theme.get("button_bg", "#0078D7"),
+                        hover_color=theme.get("button_hover", "#005A9E"),
                     )
                     self.status_text.configure(
                         text=f"Classification complete: {processed_count} files processed"
@@ -1666,7 +1731,12 @@ object adhering to the defined schema.
 
             def update_cancelled_status():
                 self.processing = False
-                self.run_button.configure(state="normal", text="Start Classification")
+                self.run_button.configure(
+                    state="normal",
+                    text="Start Classification",
+                    fg_color=theme.get("button_bg", "#0078D7"),
+                    hover_color=theme.get("button_hover", "#005A9E"),
+                )
                 self.status_text.configure(
                     text=f"Classification cancelled: {processed_count} files processed"
                 )
@@ -1678,7 +1748,12 @@ object adhering to the defined schema.
 
             def update_error_status():
                 self.processing = False
-                self.run_button.configure(state="normal", text="Start Classification")
+                self.run_button.configure(
+                    state="normal",
+                    text="Start Classification",
+                    fg_color=theme.get("button_bg", "#0078D7"),
+                    hover_color=theme.get("button_hover", "#005A9E"),
+                )
                 self.status_text.configure(text=f"Classification error: {str(e)}")
                 self._update_action_buttons_visibility()
 
@@ -1767,10 +1842,15 @@ object adhering to the defined schema.
                 self._classification_task.cancel()
 
             self.processing = True
-            self.run_button.configure(text="Stop Classification")
+            self.run_button.configure(
+                text="Stop Classification",
+                fg_color=theme.get("button_danger", "#DC3545"),
+                hover_color=theme.get("button_warning_hover", "#c82333"),
+            )
             self.status_text.configure(text="Classification starting...")
             self.progress_text.configure(text="0 files processed")
             self.tree.delete(*self.tree.get_children())  # Clear previous results
+            self.results_data.clear()
 
             # Reset counters
             self.success_count = 0
@@ -1801,7 +1881,11 @@ object adhering to the defined schema.
                             text=f"Classification error: {str(e)}"
                         )
                         self.processing = False
-                        self.run_button.configure(text="Start Classification")
+                        self.run_button.configure(
+                            text="Start Classification",
+                            fg_color=theme.get("button_bg", "#0078D7"),
+                            hover_color=theme.get("button_hover", "#005A9E"),
+                        )
                         self._update_action_buttons_visibility()
 
                     self.after(0, show_error)
@@ -1810,7 +1894,11 @@ object adhering to the defined schema.
 
         except Exception as e:
             self.processing = False
-            self.run_button.configure(text="Start Classification")
+            self.run_button.configure(
+                text="Start Classification",
+                fg_color=theme.get("button_bg", "#0078D7"),
+                hover_color=theme.get("button_hover", "#005A9E"),
+            )
             self.status_text.configure(text=f"Error starting classification: {str(e)}")
             self._update_action_buttons_visibility()
 
@@ -1845,7 +1933,11 @@ object adhering to the defined schema.
                 self._classification_task.cancel()
 
             self.processing = True
-            self.run_button.configure(text="Stop Classification")
+            self.run_button.configure(
+                text="Stop Classification",
+                fg_color=theme.get("button_danger", "#DC3545"),
+                hover_color=theme.get("button_warning_hover", "#c82333"),
+            )
             self.status_text.configure(text="Classification starting...")
             self.progress_text.configure(text="0 files processed")
             self.tree.delete(*self.tree.get_children())  # Clear previous results
@@ -1879,7 +1971,11 @@ object adhering to the defined schema.
                             text=f"Classification error: {str(e)}"
                         )
                         self.processing = False
-                        self.run_button.configure(text="Start Classification")
+                        self.run_button.configure(
+                            text="Start Classification",
+                            fg_color=theme.get("button_bg", "#0078D7"),
+                            hover_color=theme.get("button_hover", "#005A9E"),
+                        )
                         self._update_action_buttons_visibility()
 
                     self.after(0, show_error)
@@ -1888,7 +1984,11 @@ object adhering to the defined schema.
 
         except Exception as e:
             self.processing = False
-            self.run_button.configure(text="Start Classification")
+            self.run_button.configure(
+                text="Start Classification",
+                fg_color=theme.get("button_bg", "#0078D7"),
+                hover_color=theme.get("button_hover", "#005A9E"),
+            )
             self.status_text.configure(text=f"Error starting classification: {str(e)}")
             self._update_action_buttons_visibility()
 
