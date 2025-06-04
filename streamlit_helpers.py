@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 
 def sanitize_filename(filename: str) -> str:
     """Return only the safe file name component of a path."""
-    return Path(filename).name.split('/')[-1].split('\\')[-1]
+    normalized = filename.replace("\\", "/")
+    return Path(normalized).name
 
 
 def load_file_content(uploaded_file) -> Optional[Path]:

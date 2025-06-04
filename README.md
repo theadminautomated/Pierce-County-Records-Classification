@@ -31,9 +31,10 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 ## Manual Setup
 1. Install Python 3.8+
 2. `pip install -r requirements.txt`
-3. Ensure Tesseract and (on Windows) antiword are on your `PATH`
-4. Run `Deploy.ps1` once to load the model
-5. Start the UI with `streamlit run streamlit_app.py`
+3. Optionally edit `config.yaml` to customize the model or Ollama URL
+4. Ensure Tesseract and (on Windows) antiword are on your `PATH`
+5. Run `Deploy.ps1` once to load the model
+6. Start the UI with `streamlit run streamlit_app.py`
    (edit `.streamlit/config.toml` to customize the theme)
 
 ## Minimal Path to Awesome (Users)
