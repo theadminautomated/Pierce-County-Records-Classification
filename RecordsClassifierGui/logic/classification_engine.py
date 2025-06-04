@@ -123,86 +123,93 @@ class LLMEngine:
             "system": system_instructions
         }
         
-        prompt = f"Classify this content per instructions:\n{content[:5000]}\nOutput JSON only:"
-        try:
-        # Use thread-based timeout for Windows compatibility
-        result_container = {'result': None, 'error': None}
-        
-        def llm_call():
+            prompt = f"Classify this content per instructions:\n{content[:5000]}\nOutput JSON only:"
+
             try:
-                response = self.ollama.chat(
-                    model=model,
-                    messages=[
-                        {"role": "system", "content": system_instructions or ""},
-                        {"role": "user", "content": prompt}
-                    ],
-                    options=generation_config,
-                    stream=False
+                # Use thread-based timeout for Windows compatibility
+                result_container = {"result": None, "error": None}
+
+                def llm_call() -> None:
+                    """Invoke the Ollama chat API in a worker thread."""
+                    try:
+                        response = self.ollama.chat(
+                            model=model,
+                            messages=[
+                                {"role": "system", "content": system_instructions or ""},
+                                {"role": "user", "content": prompt},
+                            ],
+                            options=generation_config,
+                            stream=False,
+                        )
+                        result_container["result"] = response
+                    except Exception as exc:  # pragma: no cover - network errors
+                        result_container["error"] = exc
+
+                thread = threading.Thread(target=llm_call, daemon=True)
+                thread.start()
+                thread.join(timeout=self.timeout_seconds)
+
+                if thread.is_alive():
+                    logger.error("LLM call timed out")
+                    return {
+                        "modelDetermination": "ERROR",
+                        "confidenceScore": 0,
+                        "contextualInsights": (
+                            f"LLM call timed out after {self.timeout_seconds} seconds"
+                        ),
+                    }
+
+                if result_container["error"]:
+                    raise result_container["error"]
+
+                response = result_container["result"]
+                raw = (
+                    response.get("message", {}).get("content", "")
+                    if isinstance(response, dict)
+                    else str(response)
                 )
-                result_container['result'] = response
+
+                json_match = re.search(r"\{[^{}]*\}", raw, re.DOTALL)
+                if not json_match:
+                    raise ValueError(f"No valid JSON found in response: {raw[:200]}")
+
+                try:
+                    result = json.loads(json_match.group(0))
+                except json.JSONDecodeError as exc:
+                    raise ValueError(
+                        f"JSON decode error: {exc}\nExtracted: {json_match.group(0)[:200]}"
+                    ) from exc
+
+                validation_rules = {
+                    "modelDetermination": (
+                        lambda x: x in ("TRANSITORY", "DESTROY", "KEEP"),
+                        "must be TRANSITORY, DESTROY, or KEEP",
+                    ),
+                    "confidenceScore": (
+                        lambda x: isinstance(x, (int, float)) and 1 <= x <= 100,
+                        "must be number 1-100",
+                    ),
+                    "contextualInsights": (
+                        lambda x: isinstance(x, str),
+                        "must be string",
+                    ),
+                }
+
+                for key, (validator, msg) in validation_rules.items():
+                    if key not in result:
+                        raise ValueError(f"Missing required key: {key}")
+                    if not validator(result[key]):
+                        raise ValueError(f"Invalid {key}: {result[key]} ({msg})")
+
+                return result
+
             except Exception as e:
-                result_container['error'] = e
-        
-        # Start LLM call in thread with timeout
-        thread = threading.Thread(target=llm_call)
-        thread.daemon = True
-        thread.start()
-        thread.join(timeout=self.timeout_seconds)
-        
-        if thread.is_alive():
-            logger.error("LLM call timed out")
-            return {
-                "modelDetermination": "ERROR",
-                "confidenceScore": 0,
-                "contextualInsights": f"LLM call timed out after {self.timeout_seconds} seconds"
-            }
-        
-        if result_container['error']:
-            raise result_container['error']
-        
-        response = result_container['result']
-        raw = response.get('message', {}).get('content', '') if isinstance(response, dict) else str(response)
-        
-        # Extract JSON from response
-        json_match = re.search(r'\{[^{}]*\}', raw, re.DOTALL)
-        if not json_match:
-            raise ValueError(f'No valid JSON found in response: {raw[:200]}')
-            
-            try:
-                result = json.loads(json_match.group(0))
-            except json.JSONDecodeError as e:
-                raise ValueError(f'JSON decode error: {e}\nExtracted: {json_match.group(0)[:200]}')
-            
-            # Validate required fields
-            validation_rules = {
-                'modelDetermination': (
-                    lambda x: x in ("TRANSITORY", "DESTROY", "KEEP"),
-                    "must be TRANSITORY, DESTROY, or KEEP"
-                ),
-                'confidenceScore': (
-                    lambda x: isinstance(x, (int, float)) and 1 <= x <= 100,
-                    "must be number 1-100"
-                ),
-                'contextualInsights': (
-                    lambda x: isinstance(x, str),
-                    "must be string"
-                )
-            }
-            
-            for key, (validator, msg) in validation_rules.items():
-                if key not in result:
-                    raise ValueError(f'Missing required key: {key}')
-                if not validator(result[key]):
-                    raise ValueError(f'Invalid {key}: {result[key]} ({msg})')
-            
-            return result
-              except Exception as e:
-            logger.error(f"LLM classification failed: {e}")
-            return {
-                "modelDetermination": "ERROR",
-                "confidenceScore": 0,
-                "contextualInsights": f"Classification error: {str(e)[:200]}"
-            }
+                logger.error("LLM classification failed: %s", e)
+                return {
+                    "modelDetermination": "ERROR",
+                    "confidenceScore": 0,
+                    "contextualInsights": f"Classification error: {str(e)[:200]}",
+                }
 
 class ClassificationEngine:
     """Main classification engine with hybrid scoring."""
