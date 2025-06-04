@@ -211,43 +211,8 @@ def fully_validate_model_output(output: dict) -> None:
 
     # 7. (Optional) Add more government workload checks as needed in the future
 
-# TODO: Integrate textract for advanced document parsing if/when required for production workloads.
-
-# Example usage for a model output dict
-# def example():
-#     output = {"label": "Invoice", "score": 0.92}
-#     validators = [
-#         (validate_type, (dict,), {}),
-#         (validate_required_fields, (["label", "score"],), {}),
-#         (lambda d: validate_type(d["score"], float), (), {}),
-#         (lambda d: validate_range(d["score"], 0.0, 1.0), (), {}),
-#     ]
-#     validate_output(output, [(v, (), {}) if callable(v) else v for v in validators])
-
-# Example usage for hybrid confidence
-# def example_hybrid():
-#     output = {"label": "TRANSITORY", "score": 0.85, "text": "This is a temporary memo for routine use."}
-#     hybrid_score = hybrid_confidence(output["score"], output["text"], output["label"])
-#     print(f"Hybrid confidence: {hybrid_score:.2f}")
-
-# Example usage for validating model output
-# def example_schema():
-#     output = {
-#         "label": "TRANSITORY",
-#         "score": 0.85,
-#         "text": "This is a temporary memo for routine use.",
-#         "timestamp": "2025-05-29T12:00:00Z",
-#         "source_file": "memo.txt",
-#         "classification_details": {
-#             "schedule": "Schedule 6",
-#             "keywords_found": ["temporary", "routine"],
-#             "hybrid_confidence": 0.88,
-#             "model_confidence": 0.85,
-#             "keyword_confidence": 0.9,
-#             "validation_passed": True,
-#             "notes": "High confidence, keywords match."
-#         }
-#     }
-#     validate_json_schema(output)
-
-# TODO: Add more domain-specific validators as needed
+# Additional domain-specific validators can be implemented here when
+# expanded classification logic is required.  This placeholder block was
+# previously used for demonstration purposes and has been removed for
+# clarity.  Extend the `fully_validate_model_output` function with new
+# checks as business rules evolve.
