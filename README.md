@@ -96,3 +96,11 @@ streamlit run streamlit_app.py
 
 ## Testing
 Run unit tests with `pytest`. A stub LLM is used so tests run offline.
+
+## Docker Deployment
+Build and run the app in Docker:
+
+```bash
+docker build -t pcrc .
+docker run -p 8501:8501 pcrc
+```
