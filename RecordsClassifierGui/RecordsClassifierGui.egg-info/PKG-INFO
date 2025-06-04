@@ -15,7 +15,6 @@ Requires-Dist: PyPDF2>=3.0.0
 Requires-Dist: pdfplumber>=0.8.1
 Requires-Dist: pytesseract>=0.3.10
 Requires-Dist: pdf2image>=1.16.0
-Requires-Dist: textract>=1.7.0
 Dynamic: author
 Dynamic: requires-dist
 Dynamic: requires-python
