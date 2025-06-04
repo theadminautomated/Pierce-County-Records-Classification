@@ -21,6 +21,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 8. Inline **RERUN** and **EXPORT** buttons appear after a job completes
 9. Extensive Schedule 6 keyword list for accurate classification
 10. Clear results table showing **File Path** and a new **NA** category for skipped files
+11. Dedicated **How It Works** page with a plain‑language walkthrough
 
 ## System Requirements
 - Windows 10/11 or macOS/Linux with Python **3.8+**
