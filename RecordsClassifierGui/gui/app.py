@@ -4,8 +4,8 @@
 import tkinter as tk
 import customtkinter as ctk
 import asyncio # Import asyncio
-from .screens import SetupScreen, MainScreen  # Import MainScreen
-from .theme import theme
+from RecordsClassifierGui.gui.screens import SetupScreen, MainScreen  # Import MainScreen
+from RecordsClassifierGui.gui.theme import theme
 
 # Configure CustomTkinter
 ctk.set_appearance_mode("dark")
