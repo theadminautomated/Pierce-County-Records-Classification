@@ -71,7 +71,6 @@ def install_dependencies():
         "pdfplumber>=0.8.1",
         "pytesseract>=0.3.10",
         "pdf2image>=1.16.0",
-        "textract>=1.7.0",
         "typing-extensions>=4.0.0",
         "xlrd>=2.0.1"
     ]

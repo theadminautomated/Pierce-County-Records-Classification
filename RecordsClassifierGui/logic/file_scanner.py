@@ -12,6 +12,7 @@ from typing import List, Dict, Set, Optional, Iterator, Tuple, Union
 from dataclasses import dataclass
 import datetime
 import logging
+import subprocess
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -306,13 +307,21 @@ def extract_file_content(f: Path, max_chars: int = 4000) -> str:
                 return "[python-docx not installed]"
 
         elif suffix in ('.doc',):
-            # Try textract or antiword if available, else fallback
+            # Use antiword via subprocess for legacy .doc files
             try:
-                import textract
-                text = textract.process(str(f)).decode('utf-8', errors='ignore')
-                return _clean_text(text)[:max_chars]
-            except ImportError:
-                return "[textract not installed for .doc]"
+                result = subprocess.run([
+                    'antiword',
+                    str(f)
+                ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False)
+                text = result.stdout.decode('utf-8', errors='ignore')
+                if text:
+                    return _clean_text(text)[:max_chars]
+                return "[No text extracted from DOC]"
+            except FileNotFoundError:
+                return "[antiword not installed]"
             except Exception as e:
                 return f"[Error reading DOC: {str(e)}]"
 
@@ -367,3 +376,4 @@ def _clean_text(text: str) -> str:
     text = re.sub(r'[ \t]+', ' ', text)
     text = text.strip()
     return text
+
