@@ -7,12 +7,58 @@ Efficiently discovers and categorizes files for processing with proper architect
 
 import os
 import sys
+ codex/refactor-core-logic-functions
+import subprocess
+from pathlib import Path
+from typing import Dict, Set, List, Iterator, Tuple, Union
+from dataclasses import dataclass
+import datetime
+import logging
+
+try:
+    from docx import Document
+except Exception:  # pragma: no cover - optional dependency
+    Document = None
+
+try:
+    import pdfplumber
+except Exception:  # pragma: no cover - optional dependency
+    pdfplumber = None
+
+try:
+    import PyPDF2
+except Exception:  # pragma: no cover - optional dependency
+    PyPDF2 = None
+
+try:
+    from pptx import Presentation
+except Exception:  # pragma: no cover - optional dependency
+    Presentation = None
+
+try:
+    import openpyxl
+except Exception:  # pragma: no cover - optional dependency
+    openpyxl = None
+
+try:
+    import xlrd
+except Exception:  # pragma: no cover - optional dependency
+    xlrd = None
+
+try:
+    from PIL import Image
+    import pytesseract
+except Exception:  # pragma: no cover - optional dependency
+    Image = None
+    pytesseract = None
+
 from pathlib import Path
 from typing import List, Dict, Set, Optional, Iterator, Tuple, Union
 from dataclasses import dataclass
 import datetime
 import logging
 import subprocess
+ main
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -237,6 +283,181 @@ def scan_files(folder: Union[str, Path], include_ext: Set[str] = INCLUDE_EXT) ->
         if suffix in include_ext and not f.name.startswith('.') and not f.name.startswith('~$'):
             yield f
 
+ codex/refactor-core-logic-functions
+def extract_file_content(f: Path, max_chars: int = 4000) -> str:
+    """Extract and clean text from the given file."""
+    suffix = f.suffix.lower()
+    try:
+        if suffix == ".txt":
+            return _extract_txt(f, max_chars)
+        if suffix == ".pdf":
+            return _extract_pdf(f, max_chars)
+        if suffix == ".docx":
+            return _extract_docx(f, max_chars)
+        if suffix == ".doc":
+            return _extract_doc(f, max_chars)
+        if suffix == ".pptx":
+            return _extract_pptx(f, max_chars)
+        if suffix == ".xlsx":
+            return _extract_xlsx(f, max_chars)
+        if suffix == ".xls":
+            return _extract_xls(f, max_chars)
+        if suffix in {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}:
+            return _extract_image(f, max_chars)
+        return f"[Unsupported file type: {suffix}]"
+    except Exception as e:  # pragma: no cover - broad safety net
+        return f"[Error extracting content: {str(e)}]"
+
+
+def _extract_txt(file_path: Path, max_chars: int) -> str:
+    """Return cleaned text from a plain text file."""
+    for encoding in ("utf-8", "latin-1"):
+        try:
+            with file_path.open("r", encoding=encoding, errors="ignore") as fh:
+                return _clean_text(fh.read(max_chars))
+        except UnicodeDecodeError:
+            continue
+        except Exception as exc:  # pragma: no cover - unexpected read issues
+            return f"[Error reading file: {exc}]"
+    return f"[Unreadable file: {file_path.suffix}]"
+
+
+def _extract_pdf(file_path: Path, max_chars: int) -> str:
+    """Extract text from a PDF using available backends and OCR as fallback."""
+    text = ""
+    if pdfplumber:
+        try:
+            with pdfplumber.open(str(file_path)) as pdf:
+                for page in pdf.pages:
+                    text += page.extract_text() or ""
+                    if len(text) >= max_chars:
+                        break
+        except Exception:
+            text = ""
+    if not text and PyPDF2:
+        try:
+            with open(file_path, "rb") as fp:
+                reader = PyPDF2.PdfReader(fp)
+                for page in reader.pages:
+                    text += page.extract_text() or ""
+                    if len(text) >= max_chars:
+                        break
+        except Exception:
+            text = ""
+    if not text and pytesseract and Image:
+        try:
+            import pdf2image
+
+            images = pdf2image.convert_from_path(str(file_path))
+            for img in images:
+                text += pytesseract.image_to_string(img)
+                if len(text) >= max_chars:
+                    break
+        except Exception:
+            text = ""
+    return _clean_text(text)[:max_chars] if text else "[Could not extract text from PDF]"
+
+
+def _extract_docx(file_path: Path, max_chars: int) -> str:
+    """Extract text from a modern Word document."""
+    if not Document:
+        return "[python-docx not installed]"
+    try:
+        doc = Document(str(file_path))
+        text = "\n".join(p.text for p in doc.paragraphs)
+        return _clean_text(text)[:max_chars]
+    except Exception as exc:
+        return f"[Error reading DOCX: {exc}]"
+
+
+def _extract_doc(file_path: Path, max_chars: int) -> str:
+    """Extract text from a legacy Word document using antiword."""
+    try:
+        result = subprocess.run(
+            ["antiword", str(file_path)], stdout=subprocess.PIPE, check=True
+        )
+        text = result.stdout.decode("utf-8", errors="ignore")
+        return _clean_text(text)[:max_chars]
+    except FileNotFoundError:
+        return "[antiword not installed for .doc]"
+    except subprocess.CalledProcessError as exc:
+        return f"[Error reading DOC: {exc}]"
+
+
+def _extract_pptx(file_path: Path, max_chars: int) -> str:
+    """Extract text from a PowerPoint presentation."""
+    if not Presentation:
+        return "[python-pptx not installed]"
+    try:
+        prs = Presentation(str(file_path))
+        text: list[str] = []
+        for slide in prs.slides:
+            for shape in slide.shapes:
+                if hasattr(shape, "text"):
+                    text.append(shape.text)
+                    if sum(len(t) for t in text) >= max_chars:
+                        break
+            if sum(len(t) for t in text) >= max_chars:
+                break
+        return _clean_text("\n".join(text))[:max_chars]
+    except Exception as exc:
+        return f"[Error reading PPTX: {exc}]"
+
+
+def _extract_xlsx(file_path: Path, max_chars: int) -> str:
+    """Extract text from an Excel workbook."""
+    if not openpyxl:
+        return "[openpyxl not installed]"
+    try:
+        wb = openpyxl.load_workbook(str(file_path), read_only=True, data_only=True)
+        text: list[str] = []
+        for ws in wb.worksheets:
+            for row in ws.iter_rows(values_only=True):
+                for cell in row:
+                    if cell is not None:
+                        text.append(str(cell))
+                        if sum(len(t) for t in text) >= max_chars:
+                            break
+                if sum(len(t) for t in text) >= max_chars:
+                    break
+            if sum(len(t) for t in text) >= max_chars:
+                break
+        return _clean_text(" ".join(text))[:max_chars]
+    except Exception as exc:
+        return f"[Error reading XLSX: {exc}]"
+
+
+def _extract_xls(file_path: Path, max_chars: int) -> str:
+    """Extract text from a legacy Excel workbook."""
+    if not xlrd:
+        return "[xlrd not installed]"
+    try:
+        wb = xlrd.open_workbook(str(file_path))
+        text: list[str] = []
+        for sheet in wb.sheets():
+            for row_idx in range(sheet.nrows):
+                row = sheet.row_values(row_idx)
+                text.append(" ".join(str(cell) for cell in row))
+                if sum(len(t) for t in text) >= max_chars:
+                    break
+            if sum(len(t) for t in text) >= max_chars:
+                break
+        return _clean_text("\n".join(text))[:max_chars]
+    except Exception as exc:
+        return f"[Error reading XLS: {exc}]"
+
+
+def _extract_image(file_path: Path, max_chars: int) -> str:
+    """OCR text from an image file if Pillow and Tesseract are available."""
+    if not (Image and pytesseract):
+        return "[OCR dependencies not installed]"
+    try:
+        img = Image.open(str(file_path))
+        text = pytesseract.image_to_string(img)
+        return _clean_text(text)[:max_chars]
+    except Exception as exc:
+        return f"[Error reading image: {exc}]"
+
 def extract_file_content(f: Path, max_chars: int = 4000) -> str:
     """
     Extract text content from a file, using OCR/parsers for binary formats.
@@ -366,6 +587,7 @@ def extract_file_content(f: Path, max_chars: int = 4000) -> str:
             return f"[Unsupported file type: {suffix}]"
     except Exception as e:
         return f"[Error extracting content: {str(e)}]"
+ 
 
 def _clean_text(text: str) -> str:
     """
@@ -376,4 +598,7 @@ def _clean_text(text: str) -> str:
     text = re.sub(r'[ \t]+', ' ', text)
     text = text.strip()
     return text
+ codex/refactor-core-logic-functions
 
+
+ main

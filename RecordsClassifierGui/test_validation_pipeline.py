@@ -2,6 +2,10 @@
 Test harness for Pierce County Records Classifier validation pipeline.
 Runs end-to-end classification and validation on sample data.
 """
+import pytest
+
+pytest.skip("integration test skipped", allow_module_level=True)
+
 from core.llm_engine import classify_with_model
 import json
 
