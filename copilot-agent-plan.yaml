@@ -1,0 +1,100 @@
+# copilot-agent-plan.yaml
+# MASTER INSTRUCTION SET — PRIORITIZED
+
+# ---------------------------------------------------------------------------
+# 0. REPO BOOTSTRAP (must finish before any other step)
+# ---------------------------------------------------------------------------
+repo_setup:
+  owner: "theadminautomated"
+  name: "pierce-county-records-classification"
+  visibility: private
+  tasks:
+    - create_remote_repo
+    - set_default_branch: "main"
+    - enable_branch_protection: true
+    - push_local_workspace: true
+    - verify_ci_status_checks: false         # enable later
+    - open_tracking_issue: "Roadmap"
+
+# ---------------------------------------------------------------------------
+# 1. CONTINUOUS PULL-REQUEST PIPELINE (ordered by priority)
+#    Copilot Agent must self-create PRs, wait for CI, then merge & pull.
+# ---------------------------------------------------------------------------
+pull_request_sequence:
+  - id: "PR-01-core-refactor"
+    goal: "Hexagonal refactor & dependency injection skeleton"
+    branch: "refactor/core"
+    merge_when_green: true
+
+  - id: "PR-02-llm-validation-guardrails"
+    goal: "Integrate extreme LLM output validation (pydantic, hyperscan, schema fuzz)"
+    branch: "feature/llm-guardrails"
+    merge_when_green: true
+
+  - id: "PR-03-parallel-engine"
+    goal: "Adaptive load-balancing + Ray/async pipelines"
+    branch: "feature/parallel-engine"
+    merge_when_green: true
+
+  - id: "PR-04-ui-polish"
+    goal: "Shadcn/UI + Tailwind redesign, responsive + a11y"
+    branch: "feature/ui-polish"
+    merge_when_green: true
+
+  - id: "PR-05-code-review-hardening"
+    goal: "Automated SonarQube/Semgrep gates, logging standardization"
+    branch: "chore/code-quality"
+    merge_when_green: true
+
+  - id: "PR-06-feature-audit-cleanup"
+    goal: "Purge dead code, remove unused assets"
+    branch: "chore/cleanup"
+    merge_when_green: true
+
+  - id: "PR-07-docs-goliath"
+    goal: "Generate MkDocs site, diagrams, exhaustive README"
+    branch: "docs/overhaul"
+    merge_when_green: true
+
+  - id: "PR-08-exe-packaging"
+    goal: "PyInstaller one-file exe build, pass clean VM test"
+    branch: "release/exe-packaging"
+    merge_when_green: true
+
+  - id: "PR-09-auto-update-system"
+    goal: "Binary diff updater w/ signed patches & rollback"
+    branch: "feature/auto-update"
+    merge_when_green: true
+
+# ---------------------------------------------------------------------------
+# 2. GLOBAL STANDARDS (apply in every PR automatically)
+# ---------------------------------------------------------------------------
+global_standards:
+  style: "PEP8 + 100-char lines"
+  test_coverage_min: 90
+  cyclomatic_complexity_max: 10
+  logging_format: "[%(asctime)s] %(levelname)s — %(module)s: %(message)s"
+  docstring_style: "Google"
+
+# ---------------------------------------------------------------------------
+# 3. CI / CD
+# ---------------------------------------------------------------------------
+ci_cd:
+  runner: "GitHub Actions"
+  jobs:
+    lint: "ruff + black --check"
+    test: "pytest -q"
+    build_exe: "./scripts/build_exe.ps1"
+    vm_smoke_test: "./scripts/vm_test.ps1"
+
+# ---------------------------------------------------------------------------
+# 4. RELEASE & TAGGING
+# ---------------------------------------------------------------------------
+release_process:
+  tag_pattern: "v<major>.<minor>.<patch>"
+  changelog_source: ".changelog"
+  publish_assets:
+    - "*.exe"
+    - "checksums.txt"
+    - "docs_site.zip"
+  github_release_notes: auto_generate

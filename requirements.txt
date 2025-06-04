@@ -1,0 +1,37 @@
+-e "N:/IT Ops/Product_Support_Documentation/M365 Administration/Records/RecordsClassifierGui"
+# https://pypi.org/project/
+# Core GUI and LLM dependencies
+customtkinter>=5.2.0
+Pillow>=9.0.0
+ollama>=0.1.7
+
+# Document parsing dependencies
+python-docx>=0.8.11
+python-pptx>=0.6.21
+PyPDF2>=3.0.0
+pdfplumber>=0.8.1
+pytesseract>=0.3.10
+pdf2image>=1.16.0
+textract>=1.7.0
+openpyxl>=3.1.2
+setuptools>=80.9.0
+jsonschema>=4.24.0
+# Optional: For CSV export, pandas is recommended for robust handling
+pandas>=2.2.2
+# For testing (unit/integration)
+pytest>=8.2.1
+# Optional: For LLM/model integration (Ollama, etc.)
+ollama>=0.1.8
+
+# Optional: For .doc (legacy Word) parsing fallback
+antiword; platform_system=="Windows"
+
+# Optional: For .xls (legacy Excel) parsing fallback
+xlrd>=2.0.1
+
+# For type hints and static analysis (optional, but recommended for enterprise)
+typing-extensions>=4.0.0
+
+# System dependencies (must be installed separately):
+# - Tesseract OCR: https://github.com/tesseract-ocr/tesseract
+# - Poppler: https://github.com/oschwartz10612/poppler-windows (Windows) or `brew install poppler` (Mac)
