@@ -12,7 +12,6 @@ import datetime
 import threading
 import multiprocessing
 import logging
-from RecordsClassifierGui import gui
 from pathlib import Path
 from tkinter import messagebox, filedialog, ttk
 import tkinter as tk
@@ -91,10 +90,10 @@ MIN_WINDOW_WIDTH = 900
 MIN_WINDOW_HEIGHT = 600
 
 # Import local modules (atomic, explicit structure)
-from RecordsClassifierGui.gui import theme, screens, widgets, utils
-from RecordsClassifierGui.gui.theme import theme
-from RecordsClassifierGui.gui.screens import SetupScreen
-from RecordsClassifierGui.gui.widgets import (
+from . import theme, screens, widgets, utils
+from .theme import theme
+from .screens import SetupScreen
+from .widgets import (
     ToolTip,
     CompletionPanel,
     build_run_button,
@@ -104,11 +103,11 @@ from RecordsClassifierGui.gui.widgets import (
     build_trust_panel,
     build_header,
 )
-from RecordsClassifierGui.gui.utils import hover_effect
+from .utils import hover_effect
 
 # Ensure imports resolve correctly
-from RecordsClassifierGui.gui.widgets import *
-from RecordsClassifierGui.gui.utils import *
+from .widgets import *
+from .utils import *
 
 # ===== PATH FIX FOR DIRECT EXECUTION =====
 if __name__ == "__main__":
