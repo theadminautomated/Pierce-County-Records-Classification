@@ -16,7 +16,18 @@ from pathlib import Path
 from typing import Dict, Any, List, Set, Optional, Union, Iterator
 from dataclasses import dataclass
 import logging
-from .file_scanner import FileScanner
+
+# Import file_scanner with absolute import
+try:
+    from RecordsClassifierGui.logic.file_scanner import FileScanner
+except ImportError:
+    # Fallback for when running from different contexts
+    import sys
+    import os
+    logic_path = os.path.join(os.path.dirname(__file__))
+    if logic_path not in sys.path:
+        sys.path.insert(0, logic_path)
+    from file_scanner import FileScanner
 
 # Import model_output_validation with absolute import
 try:

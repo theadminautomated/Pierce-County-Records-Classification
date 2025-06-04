@@ -39,9 +39,8 @@ if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 try:
-    from classification_engine_fixed import ClassificationEngine
-    from file_scanner import FileScanner, INCLUDE_EXT, EXCLUDE_EXT
-
+    from RecordsClassifierGui.logic.classification_engine_fixed import ClassificationEngine
+    from RecordsClassifierGui.logic.file_scanner import FileScanner, INCLUDE_EXT, EXCLUDE_EXT
     logger.info("Successfully imported classification modules")
 except ImportError as e:
     logger.info(f"Import error: {e}")
