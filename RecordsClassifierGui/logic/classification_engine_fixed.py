@@ -326,8 +326,32 @@ class ClassificationEngine:
             mtime = datetime.datetime.fromtimestamp(stat_info.st_mtime)
             size_kb = round(stat_info.st_size / 1024, 2)
 
-            # Check for excluded file extensions
             extension = file_path.suffix.lower()
+
+            # Calculate destroy threshold once
+            threshold = datetime.datetime.now() - datetime.timedelta(
+                days=threshold_years * 365
+            )
+
+            # Rule 1: Any file older than the threshold is DESTROY regardless of other checks
+            if mtime < threshold:
+                processing_time = (
+                    datetime.datetime.now() - start_time
+                ).total_seconds() * 1000
+                return ClassificationResult(
+                    file_name=file_path.name,
+                    extension=extension,
+                    full_path=str(file_path.resolve()),
+                    last_modified=mtime.isoformat(),
+                    size_kb=size_kb,
+                    model_determination="DESTROY",
+                    confidence_score=100,
+                    contextual_insights=f"Older than {threshold_years} years - automatic destroy",
+                    status="success",
+                    processing_time_ms=int(processing_time),
+                )
+
+            # Check for excluded file extensions
             if extension in EXCLUDE_EXT:
                 processing_time = (
                     datetime.datetime.now() - start_time
@@ -338,7 +362,7 @@ class ClassificationEngine:
                     full_path=str(file_path.resolve()),
                     last_modified=mtime.isoformat(),
                     size_kb=size_kb,
-                    model_determination="TRANSITORY",
+                    model_determination="NA",
                     confidence_score=100,
                     contextual_insights=f"Excluded file type: {extension}",
                     status="skipped",
@@ -356,7 +380,7 @@ class ClassificationEngine:
                     full_path=str(file_path.resolve()),
                     last_modified=mtime.isoformat(),
                     size_kb=size_kb,
-                    model_determination="TRANSITORY",
+                    model_determination="NA",
                     confidence_score=100,
                     contextual_insights=f"Unsupported file type: {extension}",
                     status="skipped",
@@ -365,10 +389,6 @@ class ClassificationEngine:
 
             # Read file content
             content = self._read_file_content(file_path, max_lines)
-
-            threshold = datetime.datetime.now() - datetime.timedelta(
-                days=threshold_years * 365
-            )
 
             if run_mode == "Last Modified":
                 processing_time = (
@@ -393,30 +413,13 @@ class ClassificationEngine:
                     full_path=str(file_path.resolve()),
                     last_modified=mtime.isoformat(),
                     size_kb=size_kb,
-                    model_determination="TRANSITORY",
+                    model_determination="NA",
                     confidence_score=100,
                     contextual_insights=f"File newer than {threshold_years} years",
                     status="skipped",
                     processing_time_ms=int(processing_time),
                 )
 
-            # Automatic DESTROY for old files in normal mode
-            if mtime < threshold:
-                processing_time = (
-                    datetime.datetime.now() - start_time
-                ).total_seconds() * 1000
-                return ClassificationResult(
-                    file_name=file_path.name,
-                    extension=file_path.suffix,
-                    full_path=str(file_path.resolve()),
-                    last_modified=mtime.isoformat(),
-                    size_kb=size_kb,
-                    model_determination="DESTROY",
-                    confidence_score=100,
-                    contextual_insights=f"Older than {threshold_years} years - automatic destroy",
-                    status="success",
-                    processing_time_ms=int(processing_time),
-                )
 
             # Use LLM for classification
             llm_result = self.llm_engine.classify_with_llm(
@@ -476,7 +479,7 @@ class ClassificationEngine:
                 full_path=str(file_path.resolve()),
                 last_modified=mtime.isoformat(),
                 size_kb=size_kb,
-                model_determination="TRANSITORY",
+                model_determination="NA",
                 confidence_score=0,
                 contextual_insights=f"Processing error: {msg[:200]}",
                 status="error",

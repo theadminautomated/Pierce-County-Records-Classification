@@ -40,12 +40,22 @@ def classify(file_path: Path, engine: ClassificationEngine, mode: str, years: in
         st.json(
             {
                 "file": result.file_name,
+                "path": result.full_path,
                 "determination": result.model_determination,
                 "confidence": result.confidence_score,
                 "insights": result.contextual_insights,
             }
         )
 
+    st.session_state.setdefault("results", [])
+    st.session_state["results"].append(
+        {
+            "File Name": result.file_name,
+            "File Path": result.full_path,
+            "Classification": result.model_determination,
+            "Confidence": result.confidence_score,
+        }
+    )
     st.session_state["last_result"] = {
         "file": result.file_name,
         "determination": result.model_determination,
@@ -116,6 +126,9 @@ def main() -> None:
                     file_name="classification.json",
                     help="Download the latest classification result",
                 )
+
+    if st.session_state.get("results"):
+        st.dataframe(st.session_state["results"], use_container_width=True)
 
 
 if __name__ == "__main__":
