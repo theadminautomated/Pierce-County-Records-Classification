@@ -1,5 +1,4 @@
 # Core GUI and LLM dependencies
-customtkinter>=5.2.0
 Pillow>=9.0.0
 ollama>=0.1.8
 

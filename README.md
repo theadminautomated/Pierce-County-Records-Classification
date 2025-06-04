@@ -40,7 +40,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 3. Optionally edit `config.yaml` to customize the model or Ollama URL
 4. Ensure Tesseract and (on Windows) antiword are on your `PATH`
 5. Run `Deploy.ps1` once to load the model
-6. Start the UI with `streamlit run streamlit_app.py`
+6. Start the UI with `python run_app.py` or `streamlit run streamlit_app.py`
    (edit `.streamlit/config.toml` to customize the theme)
 
 ## Minimal Path to Awesome (Users)
