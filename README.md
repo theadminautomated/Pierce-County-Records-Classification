@@ -1,112 +1,77 @@
-"""
-README.md - Pierce County Electronic Records Classifier (Root)
+# Pierce County Electronic Records Classifier
 
-# Pierce County Electronic Records Classifier (Root)
+The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transitory** categories using a small language model that runs entirely on your computer. Nothing leaves your machine and the app works offline for maximum privacy.
 
-## Overview
-This repository provides a production-ready toolkit for electronic records classification using a custom LLM (Ollama).  A lightweight Streamlit interface is provided for ease of use. All analysis is performed locally for privacy and compliance.
+![New UI](docs/ui_after.png)
+![Old UI](docs/ui_before.png)
 
-## Repository Structure
-- `Electronic-Records-Classification.py`: Production CLI for records classification
-- `streamlit_app.py`: Modern web UI powered by Streamlit
-- `RecordsClassifierGui/`: Backend logic and legacy GUI code
-- `pierce-county-records-classifier-phi2/`: Custom LLM model for Ollama
-- `Deploy.ps1`: Automated deployment and model import
-- `Modelfile`: LLM prompt and configuration
+## Purpose
+- Automate retention decisions based on the county schedule
+- Provide a safe, easy‑to‑use interface for all staff
+- Give IT admins simple ways to update models and dependencies
 
-## Deployment Steps
-1. Install Python 3.8+ and Ollama
-2. Run `Deploy.ps1` to import the model
-3. Use the CLI or GUI as needed
+## Main Features
+1. Modern Streamlit web interface
+2. Local LLM classification with rule‑based fallback
+3. Works with PDF, Office, images, and text files
+4. Export results to CSV
+5. Responsive layout with dark mode and keyboard navigation
 
-## Production-Ready Features
-- All core logic, validation, and UI flows are implemented and robust
-- All visible actions are implemented or clearly marked as "Coming Soon" (bulk move/delete)
-- Accessibility: color contrast, font size, keyboard navigation, and tooltips for all controls
-- Real-time feedback, micro-animations, and status indicators
-- Version number is shown in the window title
-- All documentation and help text are up-to-date
+## System Requirements
+- Windows 10/11 or macOS/Linux with Python **3.8+**
+- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)
+- `antiword` for legacy `.doc` files (Windows only)
+- Optional: Docker for container deployments
 
-## How It Works
-- In the GUI, click the "How It Works" button for a summary of the workflow
-- The app scans files, extracts and cleans content, applies 6-year retention, classifies with LLM, validates output, and updates the table in real time
-- You can select files and export results to CSV
-- Bulk move/delete are planned for a future release and are disabled in the UI
+## Quick Start (One‑Click EXE)
+1. Double‑click the installer provided by IT
+2. Launch **Records Classifier** from the Start Menu
+3. Upload a file and wait for the results
 
-## Advanced Usage
-- **CLI Mode**: Use `Electronic-Records-Classification.py` for batch/automated jobs
-- **Custom Model**: Swap out the model in `Deploy.ps1` for new LLMs
-- **Settings Reset**: Delete `.pc_records_classifier_settings.pkl` in your home directory
+## Manual Setup
+1. Install Python 3.8+
+2. `pip install -r requirements.txt`
+3. Ensure Tesseract and (on Windows) antiword are on your `PATH`
+4. Run `Deploy.ps1` once to load the model
+5. Start the UI with `streamlit run streamlit_app.py`
+   (edit `.streamlit/config.toml` to customize the theme)
+
+## Minimal Path to Awesome (Users)
+1. Open the app
+2. Click **Browse** and choose a document
+3. Watch the spinner and progress messages
+4. Read the decision and confidence score
+5. Save to CSV if desired
+
+## Minimal Path to Awesome (IT Admins)
+1. Review `config.yaml` or set environment variables for model location
+2. Place updated model files in `pierce-county-records-classifier-phi2/`
+3. Install Tesseract and antiword on target machines
+4. Run `build_installer.ps1` to create a signed installer
+5. Distribute the installer to users
 
 ## Troubleshooting
-- **PowerShell execution policy**: The script uses `-ExecutionPolicy Bypass` where needed
-- **Missing dependencies**: The app checks and prompts for all required packages
-- **Ollama/model not found**: Run `Deploy.ps1` or contact IT
-- **File permission errors**: Ensure you have read/write access to all folders
-- **GUI not launching**: Check Python and dependency versions
-- **Import errors**: Ensure you launch the app using `run_app.py` or the VS Code task, not directly via `RecordsClassifierGui.py`
+- **Missing model**: run `Deploy.ps1` again or contact IT
+- **OCR errors**: verify Tesseract is installed and on `PATH`
+- **App will not start**: reinstall using the latest installer
 
-## FAQ
-**Q: Is any data sent to the cloud?**
-A: No. All analysis is local and private.
+## Building an Installer
+1. Install Inno Setup and PyInstaller
+2. Run `build_installer.ps1`
+3. The signed installer appears in `release/`
 
-**Q: Can I use this on Mac/Linux?**
-A: The GUI is Windows-optimized, but CLI may work cross-platform.
+## Updating Models & Binaries
+- Place new model files in `pierce-county-records-classifier-phi2/`
+- Update `config.yaml` or environment variables if using a different model
+- Ensure Tesseract and antiword executables are included on target machines
 
-**Q: How do I update the LLM model?**
-A: Replace the model in `Deploy.ps1` and rerun the script.
+## UI Modernization
+Screenshots of the classic interface and the new Streamlit UI are in `docs/`.
+Key improvements:
+- Responsive design works on tablets and desktops
+- Clear color contrast and keyboard shortcuts
+- Progress spinners and status messages for every step
 
-**Q: Where are settings stored?**
-A: In your home directory as `.pc_records_classifier_settings.pkl`.
-
-## Developer Notes
-- All major functions and UI elements are documented with docstrings
-- Modular codebase: UI, logic, and validation are separated
-- See inline comments for advanced customization
-
----
-
-*Validated as of 2025-05-29: This application is production and market ready. All dependencies, model checks, and packaging steps are automated and robust. Bulk move/delete are planned for a future release.*
-
-Pierce County IT | 2025
-"""
-
-## Configuration
-Create a `config.yaml` or set environment variables to override defaults:
-
-```
-PCRC_MODEL=custom-model
-PCRC_OLLAMA_URL=http://localhost:11434
-PCRC_CONFIG=/path/to/config.yaml
-```
-
-The sample `config.yaml` may contain:
-
-```yaml
-model_name: pierce-county-records-classifier-phi2:latest
-ollama_url: http://localhost:11434
-```
-
-## Running the UI
-Launch the Streamlit interface with:
-
-```bash
-streamlit run streamlit_app.py
-```
-
-## Testing
-Run unit tests with `pytest`. A stub LLM is used so tests run offline.
-
-## Building a Windows Installer
-Run the provided `build_installer.ps1` script to create a self-contained EXE and
-installer. The script uses PyInstaller and Inno Setup to bundle all required
-files, models, and dependencies. After running, the final installer appears in
-the `release` folder and can be double-clicked on any Windows machine.
-
-## Docker Deployment
-Build and run the app in Docker:
-
-```bash
-docker build -t pcrc .
-docker run -p 8501:8501 pcrc
-```
+## About
+Version: `1.0.0`
+Support: [records-support@example.com](mailto:records-support@example.com)
