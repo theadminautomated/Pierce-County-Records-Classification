@@ -141,18 +141,29 @@ class LLMEngine:
         """Initialize real LLM clients when available."""
         logger.info("LLMEngine running in lightweight mode; no external service")
 
+    def _sanitize_snippet(self, text: str) -> str:
+        """Return a printable snippet or a placeholder for unreadable text."""
+        snippet = text.replace("\n", " ").strip()
+        if not snippet:
+            return "[File is binary or unreadable]"
+        printable = sum(1 for ch in snippet if ch.isprintable())
+        if printable / len(snippet) < 0.85:
+            return "[File is binary or unreadable]"
+        return snippet[:80]
+
     def _extract_snippet(self, content: str, keyword: str, window: int = 80) -> str:
-        """Return text snippet around a keyword or start of content."""
+        """Return sanitized text snippet around a keyword or start of content."""
         try:
+            snippet = content[:window]
             if keyword:
                 lower = content.lower()
                 idx = lower.find(keyword.lower())
                 if idx != -1:
                     start = max(0, idx - window // 2)
-                    return content[start:start + window].replace("\n", " ")
-            return content[:window].replace("\n", " ")
+                    snippet = content[start : start + window]
+            return self._sanitize_snippet(snippet)
         except Exception:
-            return content[:window].replace("\n", " ")
+            return "[File is binary or unreadable]"
 
     def classify_with_llm(
         self,
@@ -179,14 +190,13 @@ class LLMEngine:
                 for label in model_output_validation.SCHEDULE_6_KEYWORDS
             }
 
-            if keyword_counts:
+            total = sum(keyword_counts.values())
+            if total > 0:
                 best_label = max(keyword_counts, key=keyword_counts.get)
                 first_match = next(
                     (
                         kw
-                        for kw in model_output_validation.SCHEDULE_6_KEYWORDS[
-                            best_label
-                        ]
+                        for kw in model_output_validation.SCHEDULE_6_KEYWORDS[best_label]
                         if kw in text
                     ),
                     "",
