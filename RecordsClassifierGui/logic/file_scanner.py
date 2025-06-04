@@ -7,7 +7,6 @@ Efficiently discovers and categorizes files for processing with proper architect
 
 import os
 import sys
- codex/refactor-core-logic-functions
 import subprocess
 from pathlib import Path
 from typing import Dict, Set, List, Iterator, Tuple, Union
@@ -283,8 +282,7 @@ def scan_files(folder: Union[str, Path], include_ext: Set[str] = INCLUDE_EXT) ->
         if suffix in include_ext and not f.name.startswith('.') and not f.name.startswith('~$'):
             yield f
 
- codex/refactor-core-logic-functions
-def extract_file_content(f: Path, max_chars: int = 4000) -> str:
+ def extract_file_content(f: Path, max_chars: int = 4000) -> str:
     """Extract and clean text from the given file."""
     suffix = f.suffix.lower()
     try:
@@ -598,7 +596,6 @@ def _clean_text(text: str) -> str:
     text = re.sub(r'[ \t]+', ' ', text)
     text = text.strip()
     return text
- codex/refactor-core-logic-functions
-
+ 
 
  main
