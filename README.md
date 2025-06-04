@@ -97,6 +97,12 @@ streamlit run streamlit_app.py
 ## Testing
 Run unit tests with `pytest`. A stub LLM is used so tests run offline.
 
+## Building a Windows Installer
+Run the provided `build_installer.ps1` script to create a self-contained EXE and
+installer. The script uses PyInstaller and Inno Setup to bundle all required
+files, models, and dependencies. After running, the final installer appears in
+the `release` folder and can be double-clicked on any Windows machine.
+
 ## Docker Deployment
 Build and run the app in Docker:
 

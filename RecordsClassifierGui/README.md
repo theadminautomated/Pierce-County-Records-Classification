@@ -54,8 +54,10 @@ RecordsClassifierGui/
 
 ## Build & Run
 - To run: `python run_app.py`
-- To build: Use the provided PowerShell scripts or PyInstaller spec
-- For deployment: Copy the EXE and the `model/` directory to the target machine
+- To build: run `..\build_installer.ps1` from the repository root. This script
+  creates a signed EXE and Windows installer in the `release` folder.
+- For deployment: distribute only the installer. No manual dependency setup is
+  required on the target machine.
 
 ---
 
