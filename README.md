@@ -65,6 +65,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 - **Missing model**: run `Deploy.ps1` again or contact IT
 - **OCR errors**: verify Tesseract is installed and on `PATH`
 - **App will not start**: reinstall using the latest installer
+- **Folder picker unavailable**: type the folder path manually in the sidebar
 
 ## Building an Installer
 1. Install Inno Setup and PyInstaller
