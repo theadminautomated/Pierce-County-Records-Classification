@@ -21,6 +21,15 @@ from streamlit_helpers import compute_stats
 logger = get_logger(__name__)
 
 
+def _log_message(msg: str, placeholder: Optional[st.delta_generator.DeltaGenerator] = None) -> None:
+    """Append a message to the session log and optionally refresh the UI."""
+    logger.info(msg)
+    st.session_state.setdefault("logs", [])
+    st.session_state["logs"].append(msg)
+    if placeholder is not None:
+        placeholder.write("\n".join(st.session_state["logs"]))
+
+
 def _pick_directory() -> Optional[str]:
     """Open a native folder dialog if possible."""
     try:
@@ -58,6 +67,9 @@ def _append_result(result: ClassificationResult) -> None:
             "File Path": result.full_path,
         }
     )
+    _log_message(
+        f"{result.file_name}: {result.model_determination} ({result.status})"
+    )
 
 
 def _update_table(placeholder: st.delta_generator.DeltaGenerator) -> None:
@@ -91,7 +103,9 @@ def _run_folder(
         if info.category != "skip"
     ]
     progress = st.progress(0)
+    log_ph = st.session_state.get("log_placeholder")
     for idx, p in enumerate(file_paths, start=1):
+        _log_message(f"Processing {p.name}", log_ph)
         with st.spinner(f"Processing {p.name}"):
             try:
                 res = engine.classify_file(
@@ -103,10 +117,12 @@ def _run_folder(
             except Exception as exc:  # pragma: no cover - UI feedback only
                 logger.exception("Classification failed")
                 st.error(f"Failed to classify {p.name}: {exc}")
+                _log_message(f"Failed {p.name}: {exc}", log_ph)
                 continue
         _append_result(res)
         _update_table(table_ph)
         progress.progress(idx / len(file_paths))
+        _log_message(f"Finished {p.name}", log_ph)
     progress.empty()
 
 
@@ -162,8 +178,10 @@ def main() -> None:
 
     st.title("Electronic Records Classifier")
     st.write(f"Model: {CONFIG.model_name}")
-
     table_ph = st.empty()
+    with st.sidebar.expander("Activity Log", expanded=True):
+        log_ph = st.empty()
+    st.session_state["log_placeholder"] = log_ph
 
     folder = st.text_input("Folder to scan", key="folder_path")
     if st.button("Browse", key="browse_btn"):
