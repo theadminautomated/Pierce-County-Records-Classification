@@ -3,7 +3,7 @@
 Loads configuration from environment variables or an optional YAML file.
 """
 
-from dataclasses import dataclass
+from pydantic import BaseModel, Field
 from pathlib import Path
 import logging
 import os
@@ -13,8 +13,7 @@ logger = logging.getLogger(__name__)
 
 CONFIG_PATH = Path(os.environ.get("PCRC_CONFIG", "config.yaml"))
 
-@dataclass
-class AppConfig:
+class AppConfig(BaseModel):
     """Configuration options for the app.
 
     Attributes
@@ -29,10 +28,24 @@ class AppConfig:
         Number of lines of content to pass to the model.
     """
 
-    model_name: str = "pierce-county-records-classifier-phi2:latest"
-    ollama_url: str = "http://localhost:11434"
-    batch_size: int = 10
-    max_lines: int = 100
+    model_name: str = Field(
+        default="pierce-county-records-classifier-phi2:latest",
+        description="Name of the model to use.",
+    )
+    ollama_url: str = Field(
+        default="http://localhost:11434",
+        description="Base URL for the Ollama service.",
+    )
+    batch_size: int = Field(
+        default=10,
+        description="Number of files processed per batch.",
+        ge=1,
+    )
+    max_lines: int = Field(
+        default=100,
+        description="Number of lines of content to pass to the model.",
+        ge=1,
+    )
 
 
 def load_config() -> AppConfig:
