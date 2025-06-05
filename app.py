@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Optional
 
 import pandas as pd
 import streamlit as st
@@ -16,7 +16,7 @@ from RecordsClassifierGui.logic.classification_engine_fixed import (
 )
 from config import CONFIG
 from version import __version__
-from streamlit_helpers import load_file_content, compute_stats
+from streamlit_helpers import compute_stats
 
 logger = get_logger(__name__)
 
@@ -70,35 +70,13 @@ def _update_table(placeholder: st.delta_generator.DeltaGenerator) -> None:
     st.session_state["stats"] = compute_stats(st.session_state["results"])
 
 
-def _process_paths(
-    paths: Iterable[Path],
-    engine: ClassificationEngine,
-    mode: str,
-    years: int | None,
-    table_ph: st.delta_generator.DeltaGenerator,
-) -> None:
-    """Classify provided paths and update the table live."""
-    paths = list(paths)
-    progress = st.progress(0)
-    for idx, path in enumerate(paths, start=1):
-        with st.spinner(f"Processing {path.name}"):
-            try:
-                result = engine.classify_file(path, run_mode=mode, threshold_years=years or 6)
-            except Exception as exc:  # pragma: no cover - UI feedback only
-                logger.exception("Classification failed")
-                st.error(f"Failed to classify {path.name}: {exc}")
-                continue
-        _append_result(result)
-        _update_table(table_ph)
-        progress.progress(idx / len(paths))
-    progress.empty()
-
 
 def _run_folder(
     path: Path,
     engine: ClassificationEngine,
     mode: str,
     years: int | None,
+    max_lines: int,
     table_ph: st.delta_generator.DeltaGenerator,
 ) -> None:
     """Classify every supported file in ``path`` recursively."""
@@ -116,7 +94,12 @@ def _run_folder(
     for idx, p in enumerate(file_paths, start=1):
         with st.spinner(f"Processing {p.name}"):
             try:
-                res = engine.classify_file(p, run_mode=mode, threshold_years=years or 6)
+                res = engine.classify_file(
+                    p,
+                    run_mode=mode,
+                    threshold_years=years or 6,
+                    max_lines=max_lines,
+                )
             except Exception as exc:  # pragma: no cover - UI feedback only
                 logger.exception("Classification failed")
                 st.error(f"Failed to classify {p.name}: {exc}")
@@ -143,7 +126,11 @@ def _show_stats() -> None:
 def main() -> None:
     """Run the Streamlit UI."""
     st.set_page_config(page_title="Records Classifier", page_icon="📄", layout="wide")
-    st.sidebar.image("PC_Logo_Round_white.png", width=120)
+    st.sidebar.markdown(
+        "<p style='text-align:center'>"
+        "<img src='PC_Logo_Round_white.png' width='80'/></p>",
+        unsafe_allow_html=True,
+    )
     st.sidebar.title("Pierce County Records Classifier")
     st.sidebar.write(f"Version {__version__}")
 
@@ -153,6 +140,14 @@ def main() -> None:
         "Mode",
         options=["Classification", "Last Modified"],
         help="Choose 'Classification' to analyze a document or 'Last Modified' to auto-destroy old files.",
+    )
+
+    max_lines = st.sidebar.slider(
+        "Lines per file",
+        10,
+        500,
+        CONFIG.max_lines,
+        help="Limit text passed to the model",
     )
 
     years: int | None = None
@@ -168,29 +163,15 @@ def main() -> None:
     st.title("Electronic Records Classifier")
     st.write(f"Model: {CONFIG.model_name}")
 
-    uploads = st.file_uploader(
-        "Upload files",
-        accept_multiple_files=True,
-        help="Supported formats: PDF, DOCX, images, etc.",
-    )
-
     table_ph = st.empty()
 
-    if uploads:
-        paths: list[Path] = []
-        for file in uploads:
-            p = load_file_content(file)
-            if p:
-                paths.append(p)
-        _process_paths(paths, engine, mode, years, table_ph)
-
-    folder = st.sidebar.text_input("Folder to scan", key="folder_path")
-    if st.sidebar.button("Browse", key="browse_btn"):
+    folder = st.text_input("Folder to scan", key="folder_path")
+    if st.button("Browse", key="browse_btn"):
         chosen = _pick_directory()
         if chosen:
             st.session_state.folder_path = chosen
-    if folder and st.sidebar.button("Scan Folder", key="scan_btn"):
-        _run_folder(Path(folder), engine, mode, years, table_ph)
+    if folder and st.button("Scan Folder", key="scan_btn"):
+        _run_folder(Path(folder), engine, mode, years, max_lines, table_ph)
 
     _update_table(table_ph)
     _show_stats()

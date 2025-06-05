@@ -25,11 +25,14 @@ class AppConfig:
         Base URL for the Ollama service.
     batch_size: int
         Number of files processed per batch.
+    max_lines: int
+        Number of lines of content to pass to the model.
     """
 
     model_name: str = "pierce-county-records-classifier-phi2:latest"
     ollama_url: str = "http://localhost:11434"
     batch_size: int = 10
+    max_lines: int = 100
 
 
 def load_config() -> AppConfig:
@@ -51,6 +54,7 @@ def load_config() -> AppConfig:
     env_model = os.environ.get("PCRC_MODEL")
     env_url = os.environ.get("PCRC_OLLAMA_URL")
     env_batch = os.environ.get("PCRC_BATCH_SIZE")
+    env_max_lines = os.environ.get("PCRC_MAX_LINES")
     if env_model:
         data["model_name"] = env_model
     if env_url:
@@ -60,6 +64,11 @@ def load_config() -> AppConfig:
             data["batch_size"] = int(env_batch)
         except ValueError:
             logger.warning("Invalid PCRC_BATCH_SIZE: %s", env_batch)
+    if env_max_lines:
+        try:
+            data["max_lines"] = int(env_max_lines)
+        except ValueError:
+            logger.warning("Invalid PCRC_MAX_LINES: %s", env_max_lines)
     return AppConfig(**data)
 
 CONFIG = load_config()
