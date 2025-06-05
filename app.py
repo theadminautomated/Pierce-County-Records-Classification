@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Optional
 
 import pandas as pd
 import streamlit as st
 from streamlit.logger import get_logger
+from RecordsClassifierGui.logic.file_scanner import FileScanner
 
 from RecordsClassifierGui.logic.classification_engine_fixed import (
     ClassificationEngine,
@@ -18,6 +19,22 @@ from version import __version__
 from streamlit_helpers import load_file_content, compute_stats
 
 logger = get_logger(__name__)
+
+
+def _pick_directory() -> Optional[str]:
+    """Open a native folder dialog if possible."""
+    try:
+        from tkinter import Tk, filedialog
+
+        root = Tk()
+        root.withdraw()
+        path = filedialog.askdirectory()
+        root.destroy()
+        return path or None
+    except Exception as exc:  # pragma: no cover - UI feedback only
+        logger.warning("Folder picker failed: %s", exc)
+        st.error("Folder picker not available")
+        return None
 
 
 @st.cache_resource
@@ -89,10 +106,25 @@ def _run_folder(
         st.error("Folder does not exist")
         return
 
-    results = classify_directory(path, engine=engine, run_mode=mode, threshold_years=years or 6)
-    for res in results:
+    scanner = FileScanner()
+    file_paths = [
+        info.path
+        for info in scanner.scan_directory(path)
+        if info.category != "skip"
+    ]
+    progress = st.progress(0)
+    for idx, p in enumerate(file_paths, start=1):
+        with st.spinner(f"Processing {p.name}"):
+            try:
+                res = engine.classify_file(p, run_mode=mode, threshold_years=years or 6)
+            except Exception as exc:  # pragma: no cover - UI feedback only
+                logger.exception("Classification failed")
+                st.error(f"Failed to classify {p.name}: {exc}")
+                continue
         _append_result(res)
         _update_table(table_ph)
+        progress.progress(idx / len(file_paths))
+    progress.empty()
 
 
 def _show_stats() -> None:
@@ -111,6 +143,7 @@ def _show_stats() -> None:
 def main() -> None:
     """Run the Streamlit UI."""
     st.set_page_config(page_title="Records Classifier", page_icon="📄", layout="wide")
+    st.sidebar.image("PC_Logo_Round_white.png", width=120)
     st.sidebar.title("Pierce County Records Classifier")
     st.sidebar.write(f"Version {__version__}")
 
@@ -151,8 +184,12 @@ def main() -> None:
                 paths.append(p)
         _process_paths(paths, engine, mode, years, table_ph)
 
-    folder = st.text_input("Or enter a folder path to scan")
-    if folder and st.button("Scan Folder"):
+    folder = st.sidebar.text_input("Folder to scan", key="folder_path")
+    if st.sidebar.button("Browse", key="browse_btn"):
+        chosen = _pick_directory()
+        if chosen:
+            st.session_state.folder_path = chosen
+    if folder and st.sidebar.button("Scan Folder", key="scan_btn"):
         _run_folder(Path(folder), engine, mode, years, table_ph)
 
     _update_table(table_ph)
