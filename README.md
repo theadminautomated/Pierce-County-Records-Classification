@@ -40,10 +40,17 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 1. Install Python 3.8+
 2. `pip install -r requirements.txt`
 3. Optionally edit `config.yaml` to customize the model or Ollama URL
+   (`PCRC_HF_CACHE` can override the Hugging Face cache directory)
 4. Ensure Tesseract and (on Windows) antiword are on your `PATH`
 5. Run `Deploy.ps1` once to load the model
 6. Start the UI with `streamlit run app.py`
    (or run `python run_app.py` if Streamlit isn't on your PATH)
+7. Optional: `python run_local.py --model <name>` to launch the local LLM API
+
+### Running the Local LLM
+`run_local.py` downloads models to `models/` and serves a simple `/generate`
+endpoint using FastAPI and Uvicorn. Use `--quant 4` or `--quant 8` for
+quantized loading and `--port` to choose the port.
 
 ## Minimal Path to Awesome (Users)
 1. Open the app
@@ -87,5 +94,5 @@ Key improvements:
 The classifier labels files as **KEEP**, **DESTROY**, **TRANSITORY**, or **NA**. "NA" is used for files that are skipped because they are unreadable or an unsupported type. Anything older than 6 years is automatically marked **DESTROY** and bypasses the LLM entirely, with contextual insights set to "Older than 6 years - automatic destroy".
 
 ## About
-Version: `1.1.1`
+Version: `1.2.0`
 Support: [records-support@example.com](mailto:records-support@example.com)

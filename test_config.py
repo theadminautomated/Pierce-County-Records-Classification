@@ -9,8 +9,10 @@ def test_env_overrides(tmp_path, monkeypatch):
     monkeypatch.setenv("PCRC_OLLAMA_URL", "http://y")
     monkeypatch.setenv("PCRC_BATCH_SIZE", "15")
     monkeypatch.setenv("PCRC_MAX_LINES", "200")
+    monkeypatch.setenv("PCRC_HF_CACHE", "/tmp/hf")
     cfg = load_config()
     assert cfg.model_name == "b"
     assert cfg.ollama_url == "http://y"
     assert cfg.batch_size == 15
     assert cfg.max_lines == 200
+    assert cfg.hf_cache_dir == "/tmp/hf"
