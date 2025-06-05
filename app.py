@@ -31,10 +31,15 @@ def _log_message(msg: str, placeholder: Optional[st.delta_generator.DeltaGenerat
 
 
 def _pick_directory() -> Optional[str]:
-    """Open a native folder dialog if possible."""
+    """Return a selected folder path or ``None`` when unavailable."""
     try:
         from tkinter import Tk, filedialog
+    except Exception as exc:  # pragma: no cover - import may fail on headless systems
+        logger.warning("Tkinter unavailable: %s", exc)
+        st.warning("Folder picker unavailable. Please type the path manually.")
+        return None
 
+    try:
         root = Tk()
         root.withdraw()
         path = filedialog.askdirectory()
@@ -42,7 +47,7 @@ def _pick_directory() -> Optional[str]:
         return path or None
     except Exception as exc:  # pragma: no cover - UI feedback only
         logger.warning("Folder picker failed: %s", exc)
-        st.error("Folder picker not available")
+        st.warning("Folder picker unavailable. Please type the path manually.")
         return None
 
 
