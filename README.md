@@ -23,6 +23,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 10. Clear results table showing **File Path** and a new **NA** category for skipped files
 11. Dedicated **How It Works** page with a plain‑language walkthrough
 12. Live results table with real-time progress and summary stats
+13. Sidebar folder picker with county logo branding
 
 ## System Requirements
 - Windows 10/11 or macOS/Linux with Python **3.8+**
@@ -41,8 +42,8 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 3. Optionally edit `config.yaml` to customize the model or Ollama URL
 4. Ensure Tesseract and (on Windows) antiword are on your `PATH`
 5. Run `Deploy.ps1` once to load the model
-6. Start the UI with `python run_app.py` or `streamlit run app.py`
-   (edit `.streamlit/config.toml` to customize the theme)
+6. Start the UI with `streamlit run app.py`
+   (or run `python run_app.py` if Streamlit isn't on your PATH)
 
 ## Minimal Path to Awesome (Users)
 1. Open the app
@@ -50,7 +51,8 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 3. Watch the spinner and progress messages
 4. Read the decision and confidence score
 5. Switch to **Last Modified** mode and adjust the slider to list files older than your chosen number of years
-6. When finished, use the ↻ button to analyze again or the ⬇ button to save results
+6. Enter a folder path in the sidebar and click **Scan Folder** to process files recursively
+7. When finished, use the ↻ button to analyze again or the ⬇ button to save results
 
 ## Minimal Path to Awesome (IT Admins)
 1. Review `config.yaml` or set environment variables for model location

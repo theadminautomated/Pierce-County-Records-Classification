@@ -135,3 +135,12 @@ def test_binary_snippet_placeholder(tmp_path):
     file_path.write_bytes(b"\x00\x01\x02" * 50)
     result = engine.classify_file(file_path)
     assert "[File is binary or unreadable]" in result.contextual_insights
+
+
+def test_classify_directory_recurses(tmp_path):
+    engine = ClassificationEngine(timeout_seconds=1)
+    sub = tmp_path / "inner"
+    sub.mkdir()
+    (sub / "nested.txt").write_text("hello")
+    results = list(classify_directory(tmp_path, engine=engine))
+    assert any(r.file_name == "nested.txt" for r in results)
