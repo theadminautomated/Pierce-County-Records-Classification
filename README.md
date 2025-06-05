@@ -22,6 +22,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 9. Extensive Schedule 6 keyword list for accurate classification
 10. Clear results table showing **File Path** and a new **NA** category for skipped files
 11. Dedicated **How It Works** page with a plain‑language walkthrough
+12. Live results table with real-time progress and summary stats
 
 ## System Requirements
 - Windows 10/11 or macOS/Linux with Python **3.8+**
@@ -40,7 +41,7 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
 3. Optionally edit `config.yaml` to customize the model or Ollama URL
 4. Ensure Tesseract and (on Windows) antiword are on your `PATH`
 5. Run `Deploy.ps1` once to load the model
-6. Start the UI with `python run_app.py` or `streamlit run streamlit_app.py`
+6. Start the UI with `python run_app.py` or `streamlit run app.py`
    (edit `.streamlit/config.toml` to customize the theme)
 
 ## Minimal Path to Awesome (Users)

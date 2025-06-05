@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    """Run ``streamlit_app.py`` using the current Python interpreter."""
+    """Run ``app.py`` using the current Python interpreter."""
     logging.basicConfig(level=logging.INFO)
     try:
         subprocess.run([
@@ -16,7 +16,7 @@ def main() -> None:
             "-m",
             "streamlit",
             "run",
-            "streamlit_app.py",
+            "app.py",
         ], check=True)
     except Exception as exc:
         logger.exception("Failed to launch Streamlit", exc_info=exc)
