@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Iterable
 
 import streamlit as st
 
@@ -40,3 +40,54 @@ def load_file_content(uploaded_file) -> Optional[Path]:
         logger.exception("Error saving uploaded file")
         st.error(f"Failed to save file: {exc}")
         return None
+
+
+def compute_stats(results: Iterable[dict]) -> dict:
+    """Return summary statistics for ``results``.
+
+    Parameters
+    ----------
+    results : Iterable[dict]
+        Rows as dictionaries containing ``Classification`` and ``Status`` keys.
+
+    Returns
+    -------
+    dict
+        Counts of determinations and statuses.
+    """
+
+    summary = {
+        "total": 0,
+        "keep": 0,
+        "destroy": 0,
+        "transitory": 0,
+        "na": 0,
+        "success": 0,
+        "error": 0,
+        "skipped": 0,
+    }
+
+    for row in results:
+        summary["total"] += 1
+        cls = str(row.get("Classification", "")).lower()
+        match cls:
+            case "keep":
+                summary["keep"] += 1
+            case "destroy":
+                summary["destroy"] += 1
+            case "transitory":
+                summary["transitory"] += 1
+            case "na":
+                summary["na"] += 1
+
+        status = str(row.get("Status", "")).lower()
+        match status:
+            case "success":
+                summary["success"] += 1
+            case "error":
+                summary["error"] += 1
+            case "skipped":
+                summary["skipped"] += 1
+
+    return summary
+

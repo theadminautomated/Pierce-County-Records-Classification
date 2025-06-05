@@ -1,6 +1,6 @@
 from pathlib import Path
 import tempfile
-from streamlit_helpers import sanitize_filename, load_file_content
+from streamlit_helpers import sanitize_filename, load_file_content, compute_stats
 
 class DummyUpload:
     def __init__(self, name: str, data: bytes):
@@ -22,3 +22,21 @@ def test_load_file_content(tmp_path: Path):
     path = load_file_content(dummy)
     assert path is not None
     assert path.read_bytes() == b'hi'
+
+
+def test_compute_stats():
+    data = [
+        {"Classification": "KEEP", "Status": "success"},
+        {"Classification": "DESTROY", "Status": "success"},
+        {"Classification": "NA", "Status": "skipped"},
+        {"Classification": "TRANSITORY", "Status": "error"},
+    ]
+    stats = compute_stats(data)
+    assert stats["total"] == 4
+    assert stats["keep"] == 1
+    assert stats["destroy"] == 1
+    assert stats["na"] == 1
+    assert stats["transitory"] == 1
+    assert stats["success"] == 2
+    assert stats["skipped"] == 1
+    assert stats["error"] == 1
