@@ -13,6 +13,7 @@ openpyxl>=3.1.2          # .xlsx
 setuptools>=80.9.0
 jsonschema>=4.24.0
 PyYAML>=6.0
+pydantic>=2.7.0
 pandas>=2.2.2            # CSV/XLSX export, robust tabular handling
 pytest>=8.2.1            # Unit/integration tests
 streamlit>=1.35.0        # Web-based user interface
