@@ -18,6 +18,9 @@ pandas>=2.2.2            # CSV/XLSX export, robust tabular handling
 pytest>=8.2.1            # Unit/integration tests
 streamlit>=1.35.0        # Web-based user interface
 psutil>=7.0.0          # System resource monitoring
+fastapi>=0.111.0       # Local LLM server
+uvicorn>=0.29.0        # Local server runner
+transformers>=4.41.1   # HF model loading
 # Optional dependencies for additional formats
 
 # Optional/legacy format fallback

@@ -46,6 +46,10 @@ class AppConfig(BaseModel):
         description="Number of lines of content to pass to the model.",
         ge=1,
     )
+    hf_cache_dir: str = Field(
+        default=str(Path.home() / ".cache" / "huggingface"),
+        description="Directory for Hugging Face model cache.",
+    )
 
 
 def load_config() -> AppConfig:
@@ -68,6 +72,7 @@ def load_config() -> AppConfig:
     env_url = os.environ.get("PCRC_OLLAMA_URL")
     env_batch = os.environ.get("PCRC_BATCH_SIZE")
     env_max_lines = os.environ.get("PCRC_MAX_LINES")
+    env_cache = os.environ.get("PCRC_HF_CACHE")
     if env_model:
         data["model_name"] = env_model
     if env_url:
@@ -82,6 +87,8 @@ def load_config() -> AppConfig:
             data["max_lines"] = int(env_max_lines)
         except ValueError:
             logger.warning("Invalid PCRC_MAX_LINES: %s", env_max_lines)
+    if env_cache:
+        data["hf_cache_dir"] = env_cache
     return AppConfig(**data)
 
 CONFIG = load_config()
