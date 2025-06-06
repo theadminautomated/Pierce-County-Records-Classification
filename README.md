@@ -47,6 +47,12 @@ The Records Classifier sorts documents into **Keep**, **Destroy**, or **Transito
    (or run `python run_app.py` if Streamlit isn't on your PATH)
 7. Optional: `python run_local.py --model <name>` to launch the local LLM API
 
+### Windows Build Helper
+If `cargo check` fails on Windows because the MSVC environment isn't loaded,
+run `scripts/setup_windows_env.ps1` in a PowerShell prompt before building.
+The script uses `vswhere` to locate Visual Studio Build Tools and sets the
+required variables for the current session.
+
 ### Running the Local LLM
 `run_local.py` downloads models to `models/` and serves a simple `/generate`
 endpoint using FastAPI and Uvicorn. Use `--quant 4` or `--quant 8` for
